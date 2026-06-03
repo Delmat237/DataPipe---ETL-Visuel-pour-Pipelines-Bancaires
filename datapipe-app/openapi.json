@@ -1,0 +1,6061 @@
+{
+  "basePath": "/api/v1",
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "Alert": {
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "channel": {
+          "enum": [
+            "email",
+            "slack",
+            "sms"
+          ],
+          "type": "string"
+        },
+        "condition": {
+          "example": "run.status == error",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ApiKey": {
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "key_prefix": {
+          "example": "dp_abc123...",
+          "type": "string"
+        },
+        "last_used_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Datasource": {
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "config": {
+          "type": "object"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "example": "ds_abc123",
+          "type": "string"
+        },
+        "last_synced_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sync_status": {
+          "enum": [
+            "idle",
+            "syncing",
+            "error"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "postgresql",
+            "mysql",
+            "sqlite",
+            "mongodb",
+            "api",
+            "s3"
+          ],
+          "type": "string"
+        },
+        "workspace_id": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Edge": {
+      "properties": {
+        "id": {
+          "example": "edg_abc123",
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "sourceHandle": {
+          "default": "output",
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "targetHandle": {
+          "default": "input",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Error": {
+      "properties": {
+        "error": {
+          "example": "Resource not found",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "File": {
+      "properties": {
+        "columns": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "columns_count": {
+          "type": "integer"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "example": "fil_abc123",
+          "type": "string"
+        },
+        "mime_type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rows_count": {
+          "type": "integer"
+        },
+        "size": {
+          "description": "Size in bytes",
+          "type": "integer"
+        },
+        "workspace_id": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "LoginResponse": {
+      "properties": {
+        "access_token": {
+          "type": "string"
+        },
+        "expires_in": {
+          "example": 900,
+          "type": "integer"
+        },
+        "refresh_token": {
+          "type": "string"
+        },
+        "user": {
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "org_id": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "Message": {
+      "properties": {
+        "message": {
+          "example": "Operation successful",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Node": {
+      "properties": {
+        "config": {
+          "type": "object"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "has_pinned_data": {
+          "type": "boolean"
+        },
+        "id": {
+          "example": "nod_abc123",
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "position": {
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "type": "object"
+        },
+        "type": {
+          "example": "csv_reader",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "NodeType": {
+      "properties": {
+        "category": {
+          "enum": [
+            "Input",
+            "Transform",
+            "Output",
+            "AI",
+            "Control",
+            "Trigger"
+          ],
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "outputs": {
+          "type": "integer"
+        },
+        "slug": {
+          "example": "csv_reader",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Notification": {
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "read": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Org": {
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "example": "org_abc123",
+          "type": "string"
+        },
+        "members_count": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "plan": {
+          "enum": [
+            "free",
+            "pro",
+            "enterprise"
+          ],
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "storage_used_mb": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "OrgMember": {
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "joined_at": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "viewer",
+            "editor",
+            "admin",
+            "owner"
+          ],
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Pagination": {
+      "properties": {
+        "page": {
+          "type": "integer"
+        },
+        "pages": {
+          "type": "integer"
+        },
+        "per_page": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "Pipeline": {
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "example": "pip_abc123",
+          "type": "string"
+        },
+        "is_public": {
+          "type": "boolean"
+        },
+        "last_run_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "last_run_status": {
+          "enum": [
+            "success",
+            "error",
+            "running"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "nodes_count": {
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "archived",
+            "deleted"
+          ],
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "workspace_id": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "PipelineTemplate": {
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "nodes_count": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "PipelineVersion": {
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "version_num": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "PipelineWithGraph": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Pipeline"
+        },
+        {
+          "properties": {
+            "edges": {
+              "items": {
+                "$ref": "#/definitions/Edge"
+              },
+              "type": "array"
+            },
+            "nodes": {
+              "items": {
+                "$ref": "#/definitions/Node"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "Run": {
+      "properties": {
+        "duration_ms": {
+          "type": "integer"
+        },
+        "error_message": {
+          "type": "string"
+        },
+        "finished_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "example": "run_abc123",
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "running",
+            "success",
+            "error",
+            "cancelled"
+          ],
+          "type": "string"
+        },
+        "trigger": {
+          "enum": [
+            "manual",
+            "schedule",
+            "webhook",
+            "retry"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "RunLog": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "level": {
+          "enum": [
+            "info",
+            "warn",
+            "error"
+          ],
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Schedule": {
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "cron": {
+          "example": "0 9 * * 1-5",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "last_run_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "next_run_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "timezone": {
+          "example": "Africa/Abidjan",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Session": {
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "current": {
+          "type": "boolean"
+        },
+        "device": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "User": {
+      "properties": {
+        "avatar_url": {
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "email": {
+          "format": "email",
+          "type": "string"
+        },
+        "id": {
+          "example": "usr_abc123def456",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "orgs": {
+          "items": {
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "enum": [
+                  "viewer",
+                  "editor",
+                  "admin",
+                  "owner"
+                ],
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "Webhook": {
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "events": {
+          "items": {
+            "enum": [
+              "run.success",
+              "run.error",
+              "run.started",
+              "run.cancelled"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "inbound_token": {
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Workspace": {
+      "properties": {
+        "color": {
+          "example": "#3b82f6",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "example": "ws_abc123",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "org_id": {
+          "type": "string"
+        },
+        "pipelines_count": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "host": "localhost:5000",
+  "info": {
+    "contact": {
+      "email": "balaandeguefrancoislionnel@gmail.com"
+    },
+    "description": "## DataPipe \u2014 ETL Visuel pour Pipelines Bancaires\n\nAPI REST compl\u00e8te pour concevoir, ex\u00e9cuter et monitorer des pipelines de transformation de donn\u00e9es. Hackathon J.U.I.N 2026 \u2014 Th\u00e8me 9.\n\n**Auth :** Toutes les routes (sauf `/auth/login`, `/auth/register`, `/health`) n\u00e9cessitent un header `Authorization: Bearer <access_token>`.",
+    "license": {
+      "name": "MIT"
+    },
+    "title": "DataPipe API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/ai/chat": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "message": {
+                  "example": "Comment d\u00e9tecter les anomalies dans mes transactions ?",
+                  "type": "string"
+                },
+                "session_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9ponse de l'assistant"
+          }
+        },
+        "summary": "Chat avec DataPipe Assistant",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/chat/{session_id}/history": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Messages de la session"
+          }
+        },
+        "summary": "Historique d'une session de chat",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/classify": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "categories": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "data": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "data",
+                "categories"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sultats de classification"
+          }
+        },
+        "summary": "Classifier des lignes dans des cat\u00e9gories",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/clean-data": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "data": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "data"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dataset nettoy\u00e9 avec rapport"
+          }
+        },
+        "summary": "Nettoyer automatiquement un dataset",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/detect-anomalies": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "amount_field": {
+                  "default": "montant",
+                  "type": "string"
+                },
+                "data": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "data"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anomalies d\u00e9tect\u00e9es avec z-score"
+          }
+        },
+        "summary": "D\u00e9tecter les anomalies dans un dataset",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/detect-anomalies-batch": {
+      "get": {
+        "responses": {
+          "200": {}
+        },
+        "summary": "Batch anomaly detection",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/embed": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "texts": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "texts"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vecteurs d'embeddings"
+          }
+        },
+        "summary": "G\u00e9n\u00e9rer des embeddings vectoriels",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/explain-node": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "config": {
+                  "type": "object"
+                },
+                "node_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "node_type"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explication en langage naturel"
+          }
+        },
+        "summary": "Expliquer ce que fait un n\u0153ud",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/extract-entities": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "texts": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "texts"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entit\u00e9s extraites"
+          }
+        },
+        "summary": "Extraire des entit\u00e9s (montants, dates, noms)",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/generate-pipeline": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "prompt": {
+                  "example": "Cr\u00e9er un pipeline d'analyse des transactions avec filtre de montant > 50000 et export CSV",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "prompt"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline React Flow (nodes + edges) g\u00e9n\u00e9r\u00e9"
+          }
+        },
+        "summary": "G\u00e9n\u00e9rer un pipeline React Flow complet depuis un prompt",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/generate-schema": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "sample_data": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "sample_data"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Schema JSON inf\u00e9r\u00e9"
+          }
+        },
+        "summary": "Inf\u00e9rer un schema JSON depuis des donn\u00e9es",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/generate-transform": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "context": {
+                  "properties": {
+                    "columns": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                },
+                "description": {
+                  "example": "Somme des transactions par mois et par type",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requ\u00eate SQL g\u00e9n\u00e9r\u00e9e avec score de confiance"
+          }
+        },
+        "summary": "G\u00e9n\u00e9rer une requ\u00eate SQL depuis une description naturelle",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/models": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Liste des mod\u00e8les"
+          }
+        },
+        "summary": "Mod\u00e8les IA disponibles",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/suggest-pipeline": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "goal": {
+                  "example": "D\u00e9tecter les fraudes dans les transactions bancaires",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "goal"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Structure de pipeline sugg\u00e9r\u00e9e"
+          }
+        },
+        "summary": "Sugg\u00e9rer une structure de pipeline depuis un objectif",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/ai/usage": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Tokens utilis\u00e9s / limit"
+          }
+        },
+        "summary": "Utilisation des tokens IA",
+        "tags": [
+          "AI"
+        ]
+      }
+    },
+    "/alerts": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alertes"
+          }
+        },
+        "summary": "Lister les alertes",
+        "tags": [
+          "Notifications"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "channel": {
+                  "enum": [
+                    "email",
+                    "slack",
+                    "sms"
+                  ],
+                  "type": "string"
+                },
+                "condition": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "pipeline_id": {
+                  "type": "string"
+                },
+                "recipients": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "name",
+                "condition"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Alerte cr\u00e9\u00e9e",
+            "schema": {
+              "$ref": "#/definitions/Alert"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er une alerte",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/alerts/{alert_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alerte supprim\u00e9e"
+          }
+        },
+        "summary": "Supprimer une alerte",
+        "tags": [
+          "Notifications"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alerte"
+          }
+        },
+        "summary": "D\u00e9tail d'une alerte",
+        "tags": [
+          "Notifications"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alerte mise \u00e0 jour"
+          }
+        },
+        "summary": "Modifier une alerte",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/alerts/{alert_id}/test": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "alert_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alerte de test envoy\u00e9e"
+          }
+        },
+        "summary": "Tester une alerte",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/analytics/overview": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "KPIs globaux (runs, success rate, data processed)"
+          }
+        },
+        "summary": "Vue d'ensemble des m\u00e9triques",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/analytics/pipelines/{pipeline_id}/stats": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stats d\u00e9taill\u00e9es + historique quotidien"
+          }
+        },
+        "summary": "Statistiques d'un pipeline",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/analytics/runs/timeline": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "type": "string"
+          },
+          {
+            "default": 30,
+            "in": "query",
+            "name": "days",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runs par jour sur N jours"
+          }
+        },
+        "summary": "Timeline des runs",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/analytics/usage": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "API calls, stockage, runs, tokens IA"
+          }
+        },
+        "summary": "Utilisation du mois courant",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/api-keys": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Cl\u00e9s API",
+            "schema": {
+              "properties": {
+                "api_keys": {
+                  "items": {
+                    "$ref": "#/definitions/ApiKey"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Mes cl\u00e9s API",
+        "tags": [
+          "API Keys"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "name": {
+                  "example": "CI/CD Pipeline",
+                  "type": "string"
+                },
+                "org_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Cl\u00e9 cr\u00e9\u00e9e \u2014 \u00e0 sauvegarder maintenant (non r\u00e9-affich\u00e9e)"
+          }
+        },
+        "summary": "Cr\u00e9er une cl\u00e9 API",
+        "tags": [
+          "API Keys"
+        ]
+      }
+    },
+    "/api-keys/{key_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cl\u00e9 r\u00e9voqu\u00e9e"
+          }
+        },
+        "summary": "R\u00e9voquer une cl\u00e9",
+        "tags": [
+          "API Keys"
+        ]
+      }
+    },
+    "/audit/logs": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "org_id",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "action",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "resource_type",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logs d'audit pagin\u00e9s"
+          }
+        },
+        "summary": "Logs d'audit",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/audit/logs/{log_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "log_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log d'audit"
+          }
+        },
+        "summary": "D\u00e9tail d'un log",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "current_password": {
+                  "type": "string"
+                },
+                "new_password": {
+                  "minLength": 8,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "current_password",
+                "new_password"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mot de passe chang\u00e9, toutes les sessions r\u00e9voqu\u00e9es"
+          },
+          "400": {
+            "description": "Mot de passe actuel incorrect"
+          }
+        },
+        "summary": "Changer le mot de passe",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "email": {
+                  "format": "email",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "email"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email envoy\u00e9 (r\u00e9ponse identique si compte inexistant)",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        },
+        "security": [],
+        "summary": "Demander une r\u00e9initialisation",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Retourne un access_token (15min) et un refresh_token (30j).",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "email": {
+                  "example": "john@banque.ci",
+                  "format": "email",
+                  "type": "string"
+                },
+                "password": {
+                  "example": "Secure2026!",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "email",
+                "password"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Connexion r\u00e9ussie",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          },
+          "401": {
+            "description": "Identifiants invalides",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        },
+        "security": [],
+        "summary": "Se connecter",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "description": "Invalide la session courante. Le refresh_token est blacklist\u00e9.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "refresh_token": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "D\u00e9connect\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        },
+        "summary": "Se d\u00e9connecter",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "password": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "password"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Compte supprim\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          },
+          "400": {
+            "description": "Mot de passe incorrect"
+          }
+        },
+        "summary": "Supprimer son compte",
+        "tags": [
+          "Auth"
+        ]
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Profil",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        },
+        "summary": "Profil de l'utilisateur connect\u00e9",
+        "tags": [
+          "Auth"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "avatar_url": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil mis \u00e0 jour"
+          }
+        },
+        "summary": "Modifier son profil",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/refresh-token": {
+      "post": {
+        "description": "\u00c9change un refresh_token valide contre un nouvel access_token (rotation).",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "refresh_token": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "refresh_token"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nouveau token",
+            "schema": {
+              "properties": {
+                "access_token": {
+                  "type": "string"
+                },
+                "expires_in": {
+                  "type": "integer"
+                },
+                "refresh_token": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Refresh token invalide"
+          }
+        },
+        "summary": "Rafra\u00eechir le token d'acc\u00e8s",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "description": "Enregistre un nouvel utilisateur. Envoie un email de v\u00e9rification.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "email": {
+                  "example": "john@banque.ci",
+                  "format": "email",
+                  "type": "string"
+                },
+                "name": {
+                  "example": "John Kouassi",
+                  "type": "string"
+                },
+                "org_name": {
+                  "example": "Banque CI",
+                  "type": "string"
+                },
+                "password": {
+                  "example": "Secure2026!",
+                  "minLength": 8,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "email",
+                "name",
+                "password"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Compte cr\u00e9\u00e9",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "user": {
+                  "$ref": "#/definitions/User"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Donn\u00e9es invalides",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "409": {
+            "description": "Email d\u00e9j\u00e0 utilis\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        },
+        "security": [],
+        "summary": "Cr\u00e9er un compte",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "new_password": {
+                  "minLength": 8,
+                  "type": "string"
+                },
+                "token": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "token",
+                "new_password"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mot de passe r\u00e9initialis\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          },
+          "400": {
+            "description": "Token invalide ou expir\u00e9"
+          }
+        },
+        "security": [],
+        "summary": "R\u00e9initialiser le mot de passe",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/revoke-all-sessions": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "except_current": {
+                  "default": false,
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessions r\u00e9voqu\u00e9es",
+            "schema": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "revoked_count": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "R\u00e9voquer toutes les sessions",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/sessions": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Sessions",
+            "schema": {
+              "properties": {
+                "sessions": {
+                  "items": {
+                    "$ref": "#/definitions/Session"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les sessions actives",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/sessions/{session_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session r\u00e9voqu\u00e9e",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          },
+          "404": {
+            "description": "Session introuvable"
+          }
+        },
+        "summary": "R\u00e9voquer une session",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/verify-email": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "token": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "token"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email v\u00e9rifi\u00e9, retourne un access_token"
+          }
+        },
+        "security": [],
+        "summary": "V\u00e9rifier l'email",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/datasources": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datasources",
+            "schema": {
+              "properties": {
+                "datasources": {
+                  "items": {
+                    "$ref": "#/definitions/Datasource"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les datasources",
+        "tags": [
+          "Datasources"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "config": {
+                  "example": {
+                    "database": "banque",
+                    "host": "localhost",
+                    "port": 5432
+                  },
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "enum": [
+                    "postgresql",
+                    "mysql",
+                    "sqlite",
+                    "mongodb",
+                    "api",
+                    "s3"
+                  ],
+                  "type": "string"
+                },
+                "workspace_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "workspace_id",
+                "type",
+                "name"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Datasource cr\u00e9\u00e9e",
+            "schema": {
+              "$ref": "#/definitions/Datasource"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er une datasource",
+        "tags": [
+          "Datasources"
+        ]
+      }
+    },
+    "/datasources/types": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Types avec leurs schemas de config"
+          }
+        },
+        "summary": "Types de datasources support\u00e9s",
+        "tags": [
+          "Datasources"
+        ]
+      }
+    },
+    "/datasources/{ds_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ds_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datasource supprim\u00e9e"
+          }
+        },
+        "summary": "Supprimer une datasource",
+        "tags": [
+          "Datasources"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ds_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datasource",
+            "schema": {
+              "$ref": "#/definitions/Datasource"
+            }
+          }
+        },
+        "summary": "D\u00e9tail d'une datasource",
+        "tags": [
+          "Datasources"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ds_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datasource mise \u00e0 jour"
+          }
+        },
+        "summary": "Modifier une datasource",
+        "tags": [
+          "Datasources"
+        ]
+      }
+    },
+    "/datasources/{ds_id}/schema": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ds_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tables et colonnes"
+          }
+        },
+        "summary": "Sch\u00e9ma de la base de donn\u00e9es",
+        "tags": [
+          "Datasources"
+        ]
+      }
+    },
+    "/datasources/{ds_id}/sync": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ds_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sync compl\u00e9t\u00e9e"
+          }
+        },
+        "summary": "Synchroniser les m\u00e9tadonn\u00e9es",
+        "tags": [
+          "Datasources"
+        ]
+      }
+    },
+    "/datasources/{ds_id}/sync-status": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ds_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statut sync"
+          }
+        },
+        "summary": "Statut de la synchronisation",
+        "tags": [
+          "Datasources"
+        ]
+      }
+    },
+    "/datasources/{ds_id}/test": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ds_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sultat du test de connexion"
+          }
+        },
+        "summary": "Tester la connexion",
+        "tags": [
+          "Datasources"
+        ]
+      }
+    },
+    "/exports": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Exports"
+          }
+        },
+        "summary": "Lister les exports",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/exports/{export_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "export_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export supprim\u00e9"
+          }
+        },
+        "summary": "Supprimer un export",
+        "tags": [
+          "Results"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "export_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export"
+          }
+        },
+        "summary": "D\u00e9tail d'un export",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/exports/{export_id}/download": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "export_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "text/csv",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Fichier"
+          }
+        },
+        "summary": "T\u00e9l\u00e9charger un export",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/exports/{export_id}/retry": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "export_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export relanc\u00e9"
+          }
+        },
+        "summary": "Relancer un export \u00e9chou\u00e9",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/files": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fichiers pagin\u00e9s"
+          }
+        },
+        "summary": "Lister les fichiers",
+        "tags": [
+          "Files"
+        ]
+      }
+    },
+    "/files/upload": {
+      "post": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "in": "formData",
+            "name": "file",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "in": "formData",
+            "name": "workspace_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Fichier upload\u00e9",
+            "schema": {
+              "$ref": "#/definitions/File"
+            }
+          }
+        },
+        "summary": "Uploader un fichier",
+        "tags": [
+          "Files"
+        ]
+      }
+    },
+    "/files/{file_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "file_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fichier supprim\u00e9"
+          }
+        },
+        "summary": "Supprimer un fichier",
+        "tags": [
+          "Files"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "file_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fichier",
+            "schema": {
+              "$ref": "#/definitions/File"
+            }
+          }
+        },
+        "summary": "D\u00e9tail d'un fichier",
+        "tags": [
+          "Files"
+        ]
+      }
+    },
+    "/files/{file_id}/analyze": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "file_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rapport de qualit\u00e9 des donn\u00e9es"
+          }
+        },
+        "summary": "Analyser la qualit\u00e9 d'un fichier",
+        "tags": [
+          "Files"
+        ]
+      }
+    },
+    "/files/{file_id}/preview": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "file_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "default": 20,
+            "in": "query",
+            "name": "limit",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aper\u00e7u des premi\u00e8res lignes"
+          }
+        },
+        "summary": "Aper\u00e7u des donn\u00e9es",
+        "tags": [
+          "Files"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Healthy"
+          },
+          "503": {
+            "description": "Degraded"
+          }
+        },
+        "security": [],
+        "summary": "Sant\u00e9 globale de l'API",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Alive"
+          }
+        },
+        "security": [],
+        "summary": "Liveness probe",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Ready"
+          },
+          "503": {
+            "description": "Not ready"
+          }
+        },
+        "security": [],
+        "summary": "Readiness probe (DB connect\u00e9e ?)",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/integrations": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "org_id",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Int\u00e9grations"
+          }
+        },
+        "summary": "Lister les int\u00e9grations",
+        "tags": [
+          "API Keys"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "config": {
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "org_id": {
+                  "type": "string"
+                },
+                "type": {
+                  "enum": [
+                    "slack",
+                    "email",
+                    "pagerduty",
+                    "jira",
+                    "github",
+                    "teams"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "org_id",
+                "type",
+                "name"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Int\u00e9gration cr\u00e9\u00e9e"
+          }
+        },
+        "summary": "Cr\u00e9er une int\u00e9gration",
+        "tags": [
+          "API Keys"
+        ]
+      }
+    },
+    "/integrations/{integration_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "integration_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Int\u00e9gration supprim\u00e9e"
+          }
+        },
+        "summary": "Supprimer une int\u00e9gration",
+        "tags": [
+          "API Keys"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "integration_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Int\u00e9gration"
+          }
+        },
+        "summary": "D\u00e9tail d'une int\u00e9gration",
+        "tags": [
+          "API Keys"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "integration_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Int\u00e9gration mise \u00e0 jour"
+          }
+        },
+        "summary": "Modifier une int\u00e9gration",
+        "tags": [
+          "API Keys"
+        ]
+      }
+    },
+    "/marketplace/nodes": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "N\u0153uds marketplace tri\u00e9s par popularit\u00e9"
+          }
+        },
+        "summary": "Catalogue de n\u0153uds communautaires",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/node-types": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Types de n\u0153uds group\u00e9s par cat\u00e9gorie",
+            "schema": {
+              "properties": {
+                "by_category": {
+                  "type": "object"
+                },
+                "node_types": {
+                  "items": {
+                    "$ref": "#/definitions/NodeType"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Catalogue des types de n\u0153uds",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/node-types/{type_slug}": {
+      "get": {
+        "parameters": [
+          {
+            "example": "csv_reader",
+            "in": "path",
+            "name": "type_slug",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Type de n\u0153ud",
+            "schema": {
+              "$ref": "#/definitions/NodeType"
+            }
+          }
+        },
+        "summary": "D\u00e9tail d'un type de n\u0153ud",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/node-types/{type_slug}/schema": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "type_slug",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON Schema de la configuration"
+          }
+        },
+        "summary": "JSON Schema de la config d'un type de n\u0153ud",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/notifications": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "read",
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notifications avec unread_count"
+          }
+        },
+        "summary": "Mes notifications",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/mark-all-read": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Toutes marqu\u00e9es"
+          }
+        },
+        "summary": "Marquer toutes comme lues",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/{notif_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notif_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification supprim\u00e9e"
+          }
+        },
+        "summary": "Supprimer une notification",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/{notif_id}/read": {
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notif_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification marqu\u00e9e"
+          }
+        },
+        "summary": "Marquer comme lue",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/ops/maintenance": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Mode toggl\u00e9"
+          }
+        },
+        "summary": "Toggle mode maintenance",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/ops/metrics": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Counters users, pipelines, runs"
+          }
+        },
+        "summary": "M\u00e9triques ops",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/ops/version": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Version et build info"
+          }
+        },
+        "security": [],
+        "summary": "Version de l'API",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/orgs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Liste des orgs",
+            "schema": {
+              "properties": {
+                "orgs": {
+                  "items": {
+                    "$ref": "#/definitions/Org"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister mes organisations",
+        "tags": [
+          "Organisations"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "name": {
+                  "example": "Banque Nationale CI",
+                  "type": "string"
+                },
+                "plan": {
+                  "default": "free",
+                  "enum": [
+                    "free",
+                    "pro",
+                    "enterprise"
+                  ],
+                  "type": "string"
+                },
+                "slug": {
+                  "example": "banque-ci",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Organisation cr\u00e9\u00e9e",
+            "schema": {
+              "$ref": "#/definitions/Org"
+            }
+          },
+          "400": {
+            "description": "Donn\u00e9es invalides"
+          }
+        },
+        "summary": "Cr\u00e9er une organisation",
+        "tags": [
+          "Organisations"
+        ]
+      }
+    },
+    "/orgs/{org_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organisation supprim\u00e9e",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          },
+          "403": {
+            "description": "R\u00f4le owner requis"
+          }
+        },
+        "summary": "Supprimer l'organisation",
+        "tags": [
+          "Organisations"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organisation",
+            "schema": {
+              "$ref": "#/definitions/Org"
+            }
+          },
+          "403": {
+            "description": "Acc\u00e8s refus\u00e9"
+          },
+          "404": {
+            "description": "Organisation introuvable"
+          }
+        },
+        "summary": "D\u00e9tail d'une organisation",
+        "tags": [
+          "Organisations"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "settings": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organisation mise \u00e0 jour",
+            "schema": {
+              "$ref": "#/definitions/Org"
+            }
+          }
+        },
+        "summary": "Modifier l'organisation",
+        "tags": [
+          "Organisations"
+        ]
+      }
+    },
+    "/orgs/{org_id}/members": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Membres",
+            "schema": {
+              "properties": {
+                "members": {
+                  "items": {
+                    "$ref": "#/definitions/OrgMember"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les membres",
+        "tags": [
+          "Organisations"
+        ]
+      }
+    },
+    "/orgs/{org_id}/members/accept-invite": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "token": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "token"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rejoint l'organisation"
+          }
+        },
+        "summary": "Accepter une invitation",
+        "tags": [
+          "Organisations"
+        ]
+      }
+    },
+    "/orgs/{org_id}/members/invite": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "email": {
+                  "format": "email",
+                  "type": "string"
+                },
+                "role": {
+                  "enum": [
+                    "viewer",
+                    "editor",
+                    "admin",
+                    "owner"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "email",
+                "role"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Invitation envoy\u00e9e"
+          },
+          "403": {
+            "description": "R\u00f4le admin requis"
+          }
+        },
+        "summary": "Inviter un membre",
+        "tags": [
+          "Organisations"
+        ]
+      }
+    },
+    "/orgs/{org_id}/members/{user_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Membre retir\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        },
+        "summary": "Retirer un membre",
+        "tags": [
+          "Organisations"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "role": {
+                  "enum": [
+                    "viewer",
+                    "editor",
+                    "admin"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "role"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00f4le mis \u00e0 jour"
+          }
+        },
+        "summary": "Changer le r\u00f4le d'un membre",
+        "tags": [
+          "Organisations"
+        ]
+      }
+    },
+    "/orgs/{org_id}/workspaces": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspaces",
+            "schema": {
+              "properties": {
+                "workspaces": {
+                  "items": {
+                    "$ref": "#/definitions/Workspace"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les workspaces",
+        "tags": [
+          "Workspaces"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "color": {
+                  "example": "#3b82f6",
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "name": {
+                  "example": "Production",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Workspace cr\u00e9\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Workspace"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er un workspace",
+        "tags": [
+          "Workspaces"
+        ]
+      }
+    },
+    "/orgs/{org_id}/workspaces/{ws_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "ws_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace supprim\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        },
+        "summary": "Supprimer un workspace",
+        "tags": [
+          "Workspaces"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "ws_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace",
+            "schema": {
+              "$ref": "#/definitions/Workspace"
+            }
+          }
+        },
+        "summary": "D\u00e9tail d'un workspace",
+        "tags": [
+          "Workspaces"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "org_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "ws_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "color": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace mis \u00e0 jour",
+            "schema": {
+              "$ref": "#/definitions/Workspace"
+            }
+          }
+        },
+        "summary": "Modifier un workspace",
+        "tags": [
+          "Workspaces"
+        ]
+      }
+    },
+    "/pipelines": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "default": 1,
+            "in": "query",
+            "name": "page",
+            "type": "integer"
+          },
+          {
+            "default": 20,
+            "in": "query",
+            "name": "per_page",
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "type": "string"
+          },
+          {
+            "enum": [
+              "active",
+              "archived"
+            ],
+            "in": "query",
+            "name": "status",
+            "type": "string"
+          },
+          {
+            "enum": [
+              "name",
+              "updated_at",
+              "last_run_at"
+            ],
+            "in": "query",
+            "name": "sort",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipelines pagin\u00e9s",
+            "schema": {
+              "properties": {
+                "data": {
+                  "items": {
+                    "$ref": "#/definitions/Pipeline"
+                  },
+                  "type": "array"
+                },
+                "pagination": {
+                  "$ref": "#/definitions/Pagination"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les pipelines",
+        "tags": [
+          "Pipelines"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "name": {
+                  "example": "Pipeline Transactions Mensuelles",
+                  "type": "string"
+                },
+                "tags": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "workspace_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "workspace_id"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pipeline cr\u00e9\u00e9",
+            "schema": {
+              "$ref": "#/definitions/PipelineWithGraph"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er un pipeline",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/import": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "definition": {
+                  "description": "D\u00e9finition du pipeline export\u00e9",
+                  "type": "object"
+                },
+                "workspace_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "workspace_id",
+                "definition"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pipeline import\u00e9",
+            "schema": {
+              "$ref": "#/definitions/PipelineWithGraph"
+            }
+          }
+        },
+        "summary": "Importer un pipeline (JSON/YAML)",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/merge": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "offset_x": {
+                  "default": 200,
+                  "type": "integer"
+                },
+                "source_id": {
+                  "type": "string"
+                },
+                "target_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source_id",
+                "target_id"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipelines fusionn\u00e9s"
+          }
+        },
+        "summary": "Fusionner deux pipelines",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/templates": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Templates",
+            "schema": {
+              "properties": {
+                "templates": {
+                  "items": {
+                    "$ref": "#/definitions/PipelineTemplate"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les templates",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/templates/{template_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Template avec nodes et edges"
+          }
+        },
+        "summary": "D\u00e9tail d'un template",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/templates/{template_id}/instantiate": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "workspace_id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "workspace_id"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pipeline cr\u00e9\u00e9 depuis le template",
+            "schema": {
+              "$ref": "#/definitions/PipelineWithGraph"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er un pipeline depuis un template",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline supprim\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        },
+        "summary": "Supprimer un pipeline",
+        "tags": [
+          "Pipelines"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline",
+            "schema": {
+              "$ref": "#/definitions/PipelineWithGraph"
+            }
+          },
+          "404": {
+            "description": "Pipeline introuvable"
+          }
+        },
+        "summary": "Charger un pipeline complet (avec nodes + edges)",
+        "tags": [
+          "Pipelines"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "tags": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline mis \u00e0 jour",
+            "schema": {
+              "$ref": "#/definitions/Pipeline"
+            }
+          }
+        },
+        "summary": "Mettre \u00e0 jour partiellement un pipeline",
+        "tags": [
+          "Pipelines"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "tags": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline mis \u00e0 jour",
+            "schema": {
+              "$ref": "#/definitions/Pipeline"
+            }
+          }
+        },
+        "summary": "Remplacer un pipeline",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/archive": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline archiv\u00e9"
+          }
+        },
+        "summary": "Archiver un pipeline",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/diff": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "version_a",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "version_b",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diff\u00e9rences entre les deux versions"
+          }
+        },
+        "summary": "Diff entre deux versions",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/duplicate": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pipeline dupliqu\u00e9",
+            "schema": {
+              "$ref": "#/definitions/PipelineWithGraph"
+            }
+          }
+        },
+        "summary": "Dupliquer un pipeline",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/edges": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ar\u00eates",
+            "schema": {
+              "properties": {
+                "edges": {
+                  "items": {
+                    "$ref": "#/definitions/Edge"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les ar\u00eates",
+        "tags": [
+          "Nodes"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "sourceHandle": {
+                  "default": "output",
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string"
+                },
+                "targetHandle": {
+                  "default": "input",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "source",
+                "target"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Ar\u00eate cr\u00e9\u00e9e",
+            "schema": {
+              "$ref": "#/definitions/Edge"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er une ar\u00eate",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/edges/validate": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sultat de validation",
+            "schema": {
+              "properties": {
+                "errors": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "valid": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Valider le graphe (cycles, n\u0153uds manquants)",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/edges/{edge_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "edge_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ar\u00eate supprim\u00e9e"
+          }
+        },
+        "summary": "Supprimer une ar\u00eate",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/export": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "default": "json",
+            "enum": [
+              "json",
+              "yaml"
+            ],
+            "in": "query",
+            "name": "format",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "D\u00e9finition export\u00e9e (JSON ou YAML)"
+          }
+        },
+        "summary": "Exporter un pipeline",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/nodes": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "N\u0153uds",
+            "schema": {
+              "properties": {
+                "nodes": {
+                  "items": {
+                    "$ref": "#/definitions/Node"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les n\u0153uds",
+        "tags": [
+          "Nodes"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "config": {
+                  "type": "object"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "position": {
+                  "properties": {
+                    "x": {
+                      "type": "number"
+                    },
+                    "y": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": {
+                  "example": "csv_reader",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "N\u0153ud cr\u00e9\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Node"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er un n\u0153ud",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/nodes/bulk": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "nodes": {
+                  "items": {
+                    "properties": {
+                      "config": {
+                        "type": "object"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "position": {
+                        "type": "object"
+                      },
+                      "type": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "nodes"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "N\u0153uds cr\u00e9\u00e9s"
+          }
+        },
+        "summary": "Cr\u00e9er plusieurs n\u0153uds d'un coup",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/nodes/{node_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "N\u0153ud supprim\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Message"
+            }
+          }
+        },
+        "summary": "Supprimer un n\u0153ud (et ses ar\u00eates)",
+        "tags": [
+          "Nodes"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "N\u0153ud",
+            "schema": {
+              "$ref": "#/definitions/Node"
+            }
+          }
+        },
+        "summary": "D\u00e9tail d'un n\u0153ud",
+        "tags": [
+          "Nodes"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "config": {
+                  "type": "object"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "position": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "N\u0153ud mis \u00e0 jour",
+            "schema": {
+              "$ref": "#/definitions/Node"
+            }
+          }
+        },
+        "summary": "Mettre \u00e0 jour un n\u0153ud",
+        "tags": [
+          "Nodes"
+        ]
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Node"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "N\u0153ud mis \u00e0 jour"
+          }
+        },
+        "summary": "Remplacer un n\u0153ud",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/nodes/{node_id}/pin-data": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "data": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "data"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donn\u00e9es \u00e9pingl\u00e9es"
+          }
+        },
+        "summary": "\u00c9pingler des donn\u00e9es sur un n\u0153ud (feature n8n)",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/nodes/{node_id}/pinned-data": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donn\u00e9es d\u00e9s\u00e9pingl\u00e9es"
+          }
+        },
+        "summary": "Supprimer les donn\u00e9es \u00e9pingl\u00e9es",
+        "tags": [
+          "Nodes"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donn\u00e9es \u00e9pingl\u00e9es"
+          },
+          "404": {
+            "description": "Aucune donn\u00e9e \u00e9pingl\u00e9e"
+          }
+        },
+        "summary": "Lire les donn\u00e9es \u00e9pingl\u00e9es",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/nodes/{node_id}/test-data": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donn\u00e9es de test"
+          }
+        },
+        "summary": "Donn\u00e9es de test d'un n\u0153ud (pinned ou mock)",
+        "tags": [
+          "Nodes"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/publish": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline publi\u00e9"
+          }
+        },
+        "summary": "Rendre un pipeline public",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/restore": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline restaur\u00e9"
+          }
+        },
+        "summary": "Restaurer un pipeline archiv\u00e9",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/results": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sultats des runs r\u00e9cents"
+          }
+        },
+        "summary": "R\u00e9sultats d'un pipeline",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/run": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "trigger": {
+                  "default": "manual",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Run d\u00e9marr\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Run"
+            }
+          }
+        },
+        "summary": "D\u00e9clencher un run",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/runs": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "type": "integer"
+          },
+          {
+            "in": "query",
+            "name": "per_page",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runs pagin\u00e9s"
+          }
+        },
+        "summary": "Historique des runs",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/runs/{run_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run supprim\u00e9"
+          }
+        },
+        "summary": "Supprimer un run",
+        "tags": [
+          "Runs"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run avec r\u00e9sultats par n\u0153ud",
+            "schema": {
+              "$ref": "#/definitions/Run"
+            }
+          }
+        },
+        "summary": "D\u00e9tail d'un run",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/runs/{run_id}/cancel": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run annul\u00e9"
+          }
+        },
+        "summary": "Annuler un run en cours",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/runs/{run_id}/retry": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Nouveau run cr\u00e9\u00e9"
+          }
+        },
+        "summary": "Relancer un run \u00e9chou\u00e9",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/schedule": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Schedule supprim\u00e9"
+          }
+        },
+        "summary": "Supprimer le planning",
+        "tags": [
+          "Scheduling"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Schedule",
+            "schema": {
+              "$ref": "#/definitions/Schedule"
+            }
+          }
+        },
+        "summary": "Lire le planning",
+        "tags": [
+          "Scheduling"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Schedule mis \u00e0 jour"
+          }
+        },
+        "summary": "Modifier le planning",
+        "tags": [
+          "Scheduling"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "active": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "cron": {
+                  "example": "0 8 * * 1-5",
+                  "type": "string"
+                },
+                "timezone": {
+                  "default": "Africa/Abidjan",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "cron"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Schedule cr\u00e9\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Schedule"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er un planning",
+        "tags": [
+          "Scheduling"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/schedule/pause": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Planification suspendue"
+          }
+        },
+        "summary": "Mettre en pause",
+        "tags": [
+          "Scheduling"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/schedule/resume": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Planification reprise"
+          }
+        },
+        "summary": "Reprendre la planification",
+        "tags": [
+          "Scheduling"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/unpublish": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline d\u00e9publi\u00e9"
+          }
+        },
+        "summary": "Rendre un pipeline priv\u00e9",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/versions": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Versions",
+            "schema": {
+              "properties": {
+                "versions": {
+                  "items": {
+                    "$ref": "#/definitions/PipelineVersion"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Lister les versions",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/versions/snapshot": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "label": {
+                  "example": "Avant refactoring",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Snapshot cr\u00e9\u00e9",
+            "schema": {
+              "$ref": "#/definitions/PipelineVersion"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er un snapshot manuel",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/versions/{version_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Version avec snapshot complet"
+          }
+        },
+        "summary": "D\u00e9tail d'une version",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/versions/{version_id}/restore": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pipeline restaur\u00e9 \u00e0 cette version"
+          }
+        },
+        "summary": "Restaurer une version",
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/webhooks": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhooks"
+          }
+        },
+        "summary": "Webhooks d'un pipeline",
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "events": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "secret": {
+                  "type": "string"
+                },
+                "url": {
+                  "format": "uri",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Webhook cr\u00e9\u00e9",
+            "schema": {
+              "$ref": "#/definitions/Webhook"
+            }
+          }
+        },
+        "summary": "Cr\u00e9er un webhook",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/webhooks/{webhook_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook supprim\u00e9"
+          }
+        },
+        "summary": "Supprimer un webhook",
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook"
+          }
+        },
+        "summary": "D\u00e9tail d'un webhook",
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook mis \u00e0 jour"
+          }
+        },
+        "summary": "Modifier un webhook",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/pipelines/{pipeline_id}/webhooks/{webhook_id}/test": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pipeline_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook de test envoy\u00e9"
+          }
+        },
+        "summary": "Envoyer un webhook de test",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/results/{result_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "result_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sultat"
+          }
+        },
+        "summary": "D\u00e9tail d'un r\u00e9sultat",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/results/{result_id}/download": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "result_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "default": "csv",
+            "enum": [
+              "csv",
+              "json"
+            ],
+            "in": "query",
+            "name": "format",
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "text/csv",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Fichier t\u00e9l\u00e9charg\u00e9"
+          }
+        },
+        "summary": "T\u00e9l\u00e9charger un r\u00e9sultat",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/results/{result_id}/export": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "result_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "format": {
+                  "enum": [
+                    "csv",
+                    "json",
+                    "excel"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Export cr\u00e9\u00e9"
+          }
+        },
+        "summary": "Cr\u00e9er un export",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/runs/{run_id}/logs": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logs",
+            "schema": {
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "logs": {
+                  "items": {
+                    "$ref": "#/definitions/RunLog"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          }
+        },
+        "summary": "Logs d'un run",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/logs/stream": {
+      "get": {
+        "description": "Server-Sent Events. Content-Type: text/event-stream",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "text/event-stream"
+        ],
+        "responses": {
+          "200": {
+            "description": "Stream de logs SSE"
+          }
+        },
+        "summary": "Stream des logs en temps r\u00e9el (SSE)",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/nodes/{node_id}/output": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sultat du n\u0153ud"
+          }
+        },
+        "summary": "Output d'un n\u0153ud pour un run donn\u00e9",
+        "tags": [
+          "Runs"
+        ]
+      }
+    },
+    "/runs/{run_id}/results": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donn\u00e9es produites par le run"
+          }
+        },
+        "summary": "R\u00e9sultats d'un run",
+        "tags": [
+          "Results"
+        ]
+      }
+    },
+    "/schedules": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "workspace_id",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plannings"
+          }
+        },
+        "summary": "Tous les plannings actifs",
+        "tags": [
+          "Scheduling"
+        ]
+      }
+    },
+    "/schedules/{schedule_id}/runs": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "schedule_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runs"
+          }
+        },
+        "summary": "Runs d\u00e9clench\u00e9s par un schedule",
+        "tags": [
+          "Scheduling"
+        ]
+      }
+    },
+    "/schedules/{schedule_id}/trigger": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "schedule_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Run d\u00e9clench\u00e9"
+          }
+        },
+        "summary": "D\u00e9clencher manuellement un schedule",
+        "tags": [
+          "Scheduling"
+        ]
+      }
+    },
+    "/transform/chain": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "transforms": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "transforms"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sum\u00e9 de la cha\u00eene"
+          }
+        },
+        "summary": "Cha\u00eener plusieurs transformations",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/transform/functions": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des fonctions"
+          }
+        },
+        "summary": "Fonctions SQL disponibles",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/transform/mock-data/generate": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "count": {
+                  "default": 10,
+                  "maximum": 1000,
+                  "type": "integer"
+                },
+                "domain": {
+                  "default": "banking",
+                  "enum": [
+                    "banking",
+                    "generic"
+                  ],
+                  "type": "string"
+                },
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Donn\u00e9es g\u00e9n\u00e9r\u00e9es"
+          }
+        },
+        "summary": "G\u00e9n\u00e9rer des donn\u00e9es fictives r\u00e9alistes",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/transform/preview": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "query": {
+                  "type": "string"
+                },
+                "sample_data": {
+                  "type": "array"
+                }
+              },
+              "required": [
+                "query",
+                "sample_data"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aper\u00e7u des donn\u00e9es transform\u00e9es"
+          }
+        },
+        "summary": "Pr\u00e9visualiser une transformation",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/transform/sql/execute": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "query": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "query"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sultats de la requ\u00eate"
+          }
+        },
+        "summary": "Ex\u00e9cuter une requ\u00eate SQL",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/transform/sql/history": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "20 derni\u00e8res requ\u00eates"
+          }
+        },
+        "summary": "Historique des requ\u00eates",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/transform/sql/validate": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "query": {
+                  "example": "SELECT SUM(montant) FROM {input}",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "query"
+              ],
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "R\u00e9sultat de validation"
+          }
+        },
+        "summary": "Valider une requ\u00eate SQL",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/transform/templates": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Templates SQL bancaires"
+          }
+        },
+        "summary": "Templates SQL pr\u00e9-d\u00e9finis",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/transform/templates/{template_id}/apply": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "properties": {
+                "input_ref": {
+                  "default": "input_dataset",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requ\u00eate SQL g\u00e9n\u00e9r\u00e9e"
+          }
+        },
+        "summary": "Appliquer un template SQL",
+        "tags": [
+          "Transform"
+        ]
+      }
+    },
+    "/webhooks": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Webhooks"
+          }
+        },
+        "summary": "Tous les webhooks",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/webhooks/inbound/{token}": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook re\u00e7u"
+          },
+          "404": {
+            "description": "Token invalide"
+          }
+        },
+        "security": [],
+        "summary": "R\u00e9ception d'un webhook entrant",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/webhooks/{webhook_id}/events": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "webhook_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "\u00c9v\u00e9nements webhook"
+          }
+        },
+        "summary": "Historique des \u00e9v\u00e9nements",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    }
+  },
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "securityDefinitions": {
+    "Bearer": {
+      "description": "JWT access token. Format : **Bearer &lt;token&gt;**",
+      "in": "header",
+      "name": "Authorization",
+      "type": "apiKey"
+    }
+  },
+  "swagger": "2.0",
+  "tags": [
+    {
+      "description": "Inscription, connexion, sessions et profil",
+      "name": "Auth"
+    },
+    {
+      "description": "Gestion des organisations et membres",
+      "name": "Organisations"
+    },
+    {
+      "description": "Espaces de travail par org",
+      "name": "Workspaces"
+    },
+    {
+      "description": "CRUD pipelines, versioning, templates, import/export",
+      "name": "Pipelines"
+    },
+    {
+      "description": "N\u0153uds, ar\u00eates et types de n\u0153uds",
+      "name": "Nodes"
+    },
+    {
+      "description": "Ex\u00e9cution et monitoring des pipelines",
+      "name": "Runs"
+    },
+    {
+      "description": "Upload et gestion des fichiers",
+      "name": "Files"
+    },
+    {
+      "description": "Connexions aux bases de donn\u00e9es",
+      "name": "Datasources"
+    },
+    {
+      "description": "Transformations SQL et mock data",
+      "name": "Transform"
+    },
+    {
+      "description": "Intelligence artificielle : g\u00e9n\u00e9ration, d\u00e9tection, chat",
+      "name": "AI"
+    },
+    {
+      "description": "R\u00e9sultats et exports",
+      "name": "Results"
+    },
+    {
+      "description": "Planification des runs",
+      "name": "Scheduling"
+    },
+    {
+      "description": "Webhooks sortants et entrants",
+      "name": "Webhooks"
+    },
+    {
+      "description": "Notifications et alertes",
+      "name": "Notifications"
+    },
+    {
+      "description": "Analytiques, audit et m\u00e9triques",
+      "name": "Analytics"
+    },
+    {
+      "description": "Cl\u00e9s API et int\u00e9grations",
+      "name": "API Keys"
+    },
+    {
+      "description": "Sant\u00e9, ops et marketplace",
+      "name": "Health"
+    }
+  ]
+}
