@@ -1,50 +1,86 @@
 # Rapport academique d'analyse et de conception
 ## Systeme DataPipe - ETL visuel pour pipelines bancaires
 
-### Resume
+### Introduction
 
-Ce rapport presente une modelisation et une conception orientees systeme. DataPipe est traite comme un ensemble coherent de composants de dialogue, de services applicatifs, de controle de processus, de persistance et d'integration intelligente. La logique retenue est strictement UML et se concentre sur les objets metier, les services, les controleurs et les interactions entre acteurs humains et acteurs logiciels.
+Ce rapport presente la modelisation et la conception de DataPipe en vue systeme, avec une approche UML pure. L'architecture est decrite autour de la couche d'interaction, de la couche service, de la couche controle et des objets metier persistes en base. Le systeme integre explicitement un LLM externe et un assistant Telegram comme acteurs logiciels de premier plan.
 
-Le cadre du defi 9 impose de repondre a un besoin de transformation de donnees bancaires dans un contexte contraint par la qualite des donnees, la conformite et le temps de production des reportings. Le systeme doit donc permettre la conception de pipelines, l'execution supervisee, l'assistance intelligente via LLM, et l'exploitation operationnelle via un assistant Telegram. Cette double capacite, automatisation structurelle et interaction conversationnelle, constitue le coeur de l'architecture proposee.
+### 1. Analyse du systeme
 
-### 1. Positionnement systeme
+La phase d'analyse formalise le cadre global du systeme, ses acteurs, ses responsabilites et son noyau metier. Les vues suivantes sont les vues de reference.
 
-DataPipe est un systeme applicatif de pilotage de flux de donnees. Son objectif est de reduire les manipulations manuelles et d'augmenter la fiabilite des transformations. Le systeme opere sur un cycle complet qui commence par une commande utilisateur, se poursuit par une orchestration de services, et se termine par un etat metier persistant et auditable. La frontiere fonctionnelle couvre l'authentification, la gouvernance des roles, la conception de pipeline, la gestion des sources, l'execution, la supervision, l'export et l'assistance intelligente.
+#### 1.1 Diagramme de contexte systeme
 
-La modelisation de contexte etablie dans `analyses/01_contexte_systeme.puml` formalise les acteurs principaux suivants, l'operateur metier, l'administrateur plateforme, l'auditeur interne, l'assistant Telegram, le LLM externe et les systemes tiers de donnees. Cette vue montre que le systeme est multi-acteurs et multi-canaux.
+Le diagramme de contexte positionne les acteurs humains et logiciels autour du systeme DataPipe, en explicitant les dependances vers la base de donnees, le stockage d'artefacts, les connecteurs externes, le LLM et le canal Telegram.
 
-### 2. Structuration d'analyse en UML
+![Diagramme de contexte](../analyses/01_contexte_systeme.png)
 
-Le diagramme de packages d'analyse `analyses/02_packages_analyse.puml` organise le systeme en quatre ensembles. Le premier ensemble est celui de l'interaction utilisateur, qui regroupe le portail operationnel et le canal Telegram. Le second ensemble est la couche applicative qui porte les capacites de gouvernance, d'orchestration et de supervision. Le troisieme ensemble est le domaine metier qui formalise les objets de reference. Le quatrieme ensemble est l'infrastructure qui assure persistance, stockage d'artefacts, connecteurs externes et service LLM.
+#### 1.2 Diagramme de packages d'analyse
 
-Le diagramme de cas d'usage `analyses/03_use_cases.puml` traduit les attentes de chaque acteur. L'operateur metier pilote les executions et les resultats. L'administrateur gouverne les roles et l'automatisation. L'auditeur exploite les traces. L'assistant Telegram interagit avec le systeme pour les operations conversationnelles. Le LLM intervient comme acteur logiciel de recommandation et d'assistance.
+Le diagramme de packages structure le systeme en blocs coherents et montre les dependances majeures entre interaction, services applicatifs, domaine metier et infrastructure.
 
-Le diagramme de classes metier `analyses/04_classes_metier.puml` formalise les entites de gouvernance, de pipeline, d'execution, de donnees et d'assistance. Les objets `ConversationSession`, `AssistantRequest` et `AIRecommendation` ont ete introduits pour representer explicitement la dynamique Telegram/LLM dans le modele metier.
+![Diagramme de packages](../analyses/02_packages_analyse.png)
 
-### 3. Conception technique UML pure
+#### 1.3 Diagramme de cas d'usage
 
-La conception est exprimee en UML pur selon les stereotypes `boundary`, `control` et `entity`. Les diagrammes de sequence techniques sont volontairement normalises autour de quatre elements, l'interface, le service applicatif, le controleur et les objets de base de donnees.
+Le diagramme de cas d'usage formalise les capacites attendues par les acteurs principaux. Il inclut les acteurs humains classiques, l'assistant Telegram et le LLM externe.
 
-Le diagramme `conception/01_sequence_auth_login.puml` decrit l'authentification comme un enchainement entre une interface de commande, un service d'authentification, un controleur d'acces et les entites `Utilisateur` et `SessionUtilisateur` persistees en base.
+![Diagramme de cas d'usage](../analyses/03_use_cases.png)
 
-Le diagramme `conception/02_sequence_file_upload_analyze.puml` decrit le processus d'ingestion et d'analyse de fichier selon le meme principe. L'interface soumet la commande, le service coordonne, le controleur applique les regles d'acces, l'entite `Fichier` est persistee, puis l'analyse est produite et retournee.
+#### 1.4 Diagramme de classes metier
 
-Le diagramme `conception/03_sequence_pipeline_run.puml` decrit le pilotage d'execution en introduisant explicitement l'assistant Telegram et le connecteur LLM. Le systeme traite une commande, orchestre le moteur de transformation, sollicite le LLM si necessaire, met a jour les objets `Pipeline` et `Run`, puis expose l'etat final aux canaux d'interaction.
+Le diagramme de classes metier expose les entites de gouvernance, d'orchestration, d'execution, d'assistance intelligente et de conversation operationnelle.
 
-Le diagramme de classes techniques `conception/04_classes_techniques.puml` consolide cette architecture. Les classes `InterfaceUtilisateur` et `AssistantTelegramGateway` representent les frontieres de dialogue. `ServiceApplicatif`, `AuthController`, `PipelineController` et `FileController` representent les mecanismes de controle. Les classes `Pipeline`, `Run`, `SessionUtilisateur` et `FichierMetier` representent les entites techniques persistees.
+![Diagramme de classes metier](../analyses/04_classes_metier.png)
 
-Les diagrammes d'etats-transitions `conception/05_etat_transition_run.puml` et `conception/06_etat_transition_schedule_datasource.puml` formalisent la dynamique du systeme. Le cycle de `Run` integre un etat d'attente d'assistance IA. Les cycles de synchronisation et d'interaction conversationnelle explicitent les etats de reprise et d'escalade.
+### 2. Conception technique UML pure
 
-### 4. Acteurs principaux et responsabilites
+La phase de conception traduit l'analyse en interactions techniques detaillees. Les sequences suivent le schema exige interface, service, controleur et objets persistes.
 
-L'operateur metier est responsable de la configuration et du pilotage des flux. L'administrateur plateforme est responsable de la gouvernance des acces et de l'automatisation. L'auditeur interne est responsable de l'exploitation des traces et de la verification de conformite. L'assistant Telegram est un acteur logiciel de mediation operationnelle. Le LLM est un acteur logiciel d'assistance a la decision de transformation.
+#### 2.1 Sequence technique d'authentification
 
-Cette distribution des responsabilites est centrale dans la qualite du systeme car elle separe clairement le pilotage metier, le controle organisationnel et les mecanismes d'aide intelligente.
+Le flux de connexion represente le parcours complet entre la commande utilisateur, la validation de service, le controle d'acces et la creation de session persistante.
 
-### 5. Coherence avec le modele economique
+![Sequence authentification](../conception/01_sequence_auth_login.png)
 
-Le modele economique associe a cette architecture est disponible dans `docs/modele_economique_datapipe_cameroun.md`. Il est fonde sur une valeur de systeme et non sur une valeur d'endpoint, avec une promesse de reduction des couts de traitement, de baisse du risque operationnel et d'amelioration de la tracabilite. Le role du LLM et de l'assistant Telegram y est integre comme levier de productivite et de rapidite d'exploitation.
+#### 2.2 Sequence technique ingestion et analyse
 
-### 6. Conclusion
+Le flux d'ingestion et d'analyse montre la coordination entre interface, service d'ingestion, controle des droits, persistance de l'objet fichier et production du rapport d'analyse.
 
-La refonte de l'analyse et de la conception en UML pur confirme que DataPipe est un systeme applicatif complet articule autour d'une couche de service, de controleurs, d'objets persistes et de canaux d'interaction intelligents. La modelisation prend explicitement en compte l'assistant Telegram et le LLM comme acteurs structurants de la solution. Cette representation est adaptee a une soutenance exigeante car elle rend visibles les mecanismes de valeur, de controle et de robustesse du systeme.
+![Sequence ingestion analyse](../conception/02_sequence_file_upload_analyze.png)
+
+#### 2.3 Sequence technique d'execution pipeline
+
+Le flux de run met en evidence l'orchestration du moteur de transformation, l'appel conditionnel au LLM, la mise a jour des objets `Pipeline` et `Run` et l'exposition de statut vers les canaux d'interaction.
+
+![Sequence execution pipeline](../conception/03_sequence_pipeline_run.png)
+
+#### 2.4 Diagramme de classes techniques
+
+Le diagramme de classes techniques presente les stereotypes UML `boundary`, `control` et `entity` avec les dependances de la couche applicative.
+
+![Classes techniques](../conception/04_classes_techniques.png)
+
+#### 2.5 Diagramme d'etats-transitions du Run
+
+Le cycle de vie du run formalise les transitions critiques, y compris l'etat d'attente d'assistance IA.
+
+![Etat transition run](../conception/05_etat_transition_run.png)
+
+#### 2.6 Diagramme d'etats-transitions d'orchestration
+
+Ce diagramme formalise la dynamique des schedules, de la synchronisation datasource et de l'interaction conversationnelle assistee.
+
+![Etat transition orchestration](../conception/06_etat_transition_schedule_datasource.png)
+
+### 3. Coherence architecture et valeur metier
+
+L'ensemble des vues UML montre un systeme coherent dans lequel la gouvernance des acces, l'execution des pipelines, la supervision operationnelle et l'assistance intelligente sont articulees sans ambiguite. La separation des responsabilites entre interface, service, controle et objets persistes facilite la maintenabilite, la testabilite et l'auditabilite.
+
+### 4. Lien avec le modele economique
+
+Le modele economique complet, contextualise pour le Cameroun, est disponible dans `docs/modele_economique_datapipe_cameroun.md`. Ce document contient les tableaux de revenus, segmentation, unit economics, scenarios financiers, plan de financement trimestriel et gestion des risques.
+
+### Conclusion
+
+La refonte en UML pure confirme que DataPipe est un systeme applicatif complet et non une simple exposition d'endpoints. L'integration explicite du LLM et de l'assistant Telegram dans les vues d'analyse et de conception renforce la qualite de modelisation et la pertinence de la proposition technique pour le defi 9.

@@ -76,8 +76,15 @@ class Repository <<entity>> {
   +query()
 }
 
-database "BaseDonnees <<entity>>" as DB
-collections "StockageArtefacts <<entity>>" as Storage
+class BaseDonnees <<entity>> {
+  +persist()
+  +read()
+}
+
+class StockageArtefacts <<entity>> {
+  +write()
+  +read()
+}
 
 InterfaceUtilisateur --> ServiceApplicatif
 AssistantTelegramGateway --> ServiceApplicatif
@@ -98,9 +105,9 @@ SessionUtilisateur --> Repository
 Pipeline --> Repository
 Run --> Repository
 FichierMetier --> Repository
-Repository --> DB
+Repository --> BaseDonnees
 
-PipelineController --> Storage
-FileController --> Storage
+PipelineController --> StockageArtefacts
+FileController --> StockageArtefacts
 
 @enduml
