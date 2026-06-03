@@ -1,0 +1,24 @@
+@startuml
+title DataPipe - Diagramme d'Etats-Transitions (Run)
+skinparam shadowing false
+
+[*] --> pending : creation Run
+pending --> running : trigger_run() / _execute_run()
+
+running --> success : execution complete sans erreur
+running --> error : erreur moteur / noeud
+pending --> cancelled : cancel_run()
+running --> cancelled : cancel_run()
+
+success --> [*]
+error --> [*]
+cancelled --> [*]
+
+note right of running
+Mises a jour techniques:
+- RunLog ajoute
+- node_results calcule
+- statut pipeline mis a jour
+end note
+
+@enduml

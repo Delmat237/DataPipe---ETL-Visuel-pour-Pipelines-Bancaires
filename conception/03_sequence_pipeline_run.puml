@@ -1,0 +1,35 @@
+@startuml
+title DataPipe - Sequence Technique Execution Pipeline
+autonumber
+skinparam shadowing false
+
+actor Client
+participant "runs.py::trigger_run()" as Trigger
+participant "utils::check_pipeline_access()" as Access
+database "Pipeline/Run ORM" as ORM
+participant "runs.py::_execute_run()" as ExecRun
+participant "engine.py::execute_pipeline()" as Engine
+collections "Filesystem uploads/results" as FS
+
+Client -> Trigger : POST /api/v1/pipelines/{pipeline_id}/run
+Trigger -> Access : check_pipeline_access(pipeline_id, user_id)
+Access --> Trigger : pipeline
+Trigger -> ORM : INSERT Run(status='pending', trigger='manual')
+ORM --> Trigger : run
+Trigger -> ExecRun : _execute_run(pipeline, run)
+
+ExecRun -> ORM : run.status='running' + commit
+ExecRun -> Engine : execute_pipeline(nodes, edges,\nfile_loader, sql_generator,\ndatasource_query, http_fetch)
+Engine -> Engine : _toposort() + _execute_node()*
+Engine --> ExecRun : {status, node_results, errors}
+
+ExecRun -> ORM : INSERT RunLog(...)
+ExecRun -> ORM : update Run(status,node_results,error_message)
+ExecRun -> FS : write uploads/results/{run_id}.json
+ExecRun -> ORM : update Pipeline(last_run_at,last_run_status)
+ORM --> ExecRun : commit
+ExecRun --> Trigger : done
+
+Trigger --> Client : 201 run.to_dict(include_results=True)
+
+@enduml

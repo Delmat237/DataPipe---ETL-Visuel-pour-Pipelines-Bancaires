@@ -1,0 +1,41 @@
+@startuml
+title DataPipe - Diagramme de Packages (Analyse)
+top to bottom direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+package "Presentation API\n(app/routes)" as API {
+  package "Auth" as PAuth
+  package "Organisation" as POrg
+  package "Pipelines" as PPipe
+  package "Execution" as PRun
+  package "Data Management" as PData
+  package "Automatisation" as PAuto
+  package "Observabilite" as PObs
+}
+
+package "Metier\n(app/models.py)" as Domain
+package "Services techniques\n(app/engine.py + app/utils.py)" as Services
+package "Infrastructure" as Infra {
+  package "Persistence SQLAlchemy" as Pers
+  package "Stockage fichiers" as Storage
+  package "Connecteurs externes" as Ext
+}
+
+PAuth ..> Domain : cree/consulte
+POrg ..> Domain : gere roles/orgs
+PPipe ..> Domain : CRUD pipeline
+PRun ..> Services : execute pipeline
+PData ..> Services : validation,\nacces workspace
+PAuto ..> Domain : schedules,\nwebhooks, alerts
+PObs ..> Domain : notifications,\naudit, analytics
+
+Services ..> Domain : regles metier
+Services ..> Pers : ORM
+Services ..> Storage : uploads/results
+Services ..> Ext : IA / HTTP / Datasource
+
+API ..> Services
+API ..> Domain
+
+@enduml

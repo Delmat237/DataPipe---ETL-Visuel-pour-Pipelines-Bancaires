@@ -1,0 +1,114 @@
+@startuml
+title DataPipe - Diagramme de Classes Techniques
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+class Config {
+  +SECRET_KEY
+  +JWT_SECRET_KEY
+  +SQLALCHEMY_DATABASE_URI
+  +UPLOAD_FOLDER
+}
+
+class FlaskAppFactory {
+  +create_app(testing=False)
+}
+
+class Extensions {
+  +db
+  +jwt
+  +bcrypt
+  +blacklisted_tokens
+}
+
+class Utils {
+  +validate_required()
+  +paginate()
+  +check_org_role()
+  +check_pipeline_access()
+  +run_results_path()
+  +log_audit()
+}
+
+class Engine {
+  +execute_pipeline()
+  -_toposort()
+  -_execute_node()
+}
+
+class RunsController {
+  +trigger_run()
+  +list_runs()
+  +cancel_run()
+  +retry_run()
+  -_execute_run()
+}
+
+class FilesController {
+  +upload_file()
+  +list_files()
+  +preview_file()
+  +analyze_file()
+}
+
+class AuthController {
+  +register()
+  +login()
+  +refresh_token()
+  +logout()
+}
+
+class ResultsController {
+  +get_run_results()
+  +download_result()
+  +export_result()
+}
+
+class AIController {
+  +generate_transform()
+  +suggest_pipeline()
+  +chat()
+}
+
+class PersistenceLayer {
+  +SQLAlchemy Models
+}
+
+class FileStorage {
+  +uploads/
+  +uploads/results/
+}
+
+class ExternalAdapters {
+  +OpenAI/Claude/OpenRouter
+  +HTTP fetch
+  +Datasource query
+}
+
+FlaskAppFactory --> Config
+FlaskAppFactory --> Extensions
+FlaskAppFactory --> AuthController
+FlaskAppFactory --> FilesController
+FlaskAppFactory --> RunsController
+FlaskAppFactory --> ResultsController
+FlaskAppFactory --> AIController
+
+AuthController ..> Utils
+FilesController ..> Utils
+RunsController ..> Utils
+ResultsController ..> Utils
+
+RunsController ..> Engine
+Engine ..> ExternalAdapters
+
+AuthController ..> PersistenceLayer
+FilesController ..> PersistenceLayer
+RunsController ..> PersistenceLayer
+ResultsController ..> PersistenceLayer
+AIController ..> PersistenceLayer
+
+FilesController ..> FileStorage
+RunsController ..> FileStorage
+ResultsController ..> FileStorage
+
+@enduml

@@ -1,0 +1,34 @@
+@startuml
+title DataPipe - Diagramme de Contexte
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+actor "Utilisateur Metier" as User
+actor "Administrateur" as Admin
+actor "Systeme Externe\n(emetteur webhook)" as External
+
+rectangle "DataPipe API\n(Flask + JWT + SQLAlchemy)" as DataPipe
+database "SQLite\n(datapipe.db)" as DB
+folder "Fichiers locaux\nuploads/" as FS
+cloud "Services IA\n(OpenAI / Anthropic / OpenRouter)" as AI
+cloud "Sources externes\n(DB/API via Datasource)" as Sources
+
+User --> DataPipe : Utilise endpoints REST
+Admin --> DataPipe : Configure orgs,\nroles, integrations
+External --> DataPipe : POST inbound webhook
+
+DataPipe --> DB : Persiste metadonnees\net etats
+DataPipe --> FS : Lit/ecrit fichiers\net resultats
+DataPipe --> AI : Generation IA\n(SQL, suggestions, chat)
+DataPipe --> Sources : Requetes datasource\net appels HTTP
+
+note bottom of DataPipe
+API versionnee sous /api/v1
+Modules: auth, orgs, pipelines, nodes,
+runs, files, transform, ai, results,
+scheduling, webhooks, notifications,
+analytics, api-keys, health
+end note
+
+@enduml

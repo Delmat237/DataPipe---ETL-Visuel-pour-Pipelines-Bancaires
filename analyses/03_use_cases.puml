@@ -1,0 +1,63 @@
+@startuml
+title DataPipe - Diagramme de Cas d'Usage
+left to right direction
+skinparam shadowing false
+
+actor "Utilisateur" as User
+actor "Admin Org" as Admin
+actor "Systeme Externe" as External
+
+rectangle "DataPipe API" {
+  usecase "S'inscrire" as UC_Register
+  usecase "Se connecter" as UC_Login
+  usecase "Gerer profil\net sessions" as UC_Profile
+
+  usecase "Gerer organisations\net workspaces" as UC_Org
+  usecase "Inviter membres\net gerer roles" as UC_Roles
+
+  usecase "Creer/Modifier pipeline" as UC_Pipeline
+  usecase "Configurer noeuds\net connexions" as UC_Nodes
+  usecase "Versionner/Publier pipeline" as UC_Version
+
+  usecase "Uploader fichier\net analyser donnees" as UC_Upload
+  usecase "Gerer datasources" as UC_Datasource
+
+  usecase "Executer pipeline" as UC_Run
+  usecase "Consulter logs\net sorties" as UC_Logs
+  usecase "Exporter resultats" as UC_Export
+
+  usecase "Planifier execution\n(scheduling)" as UC_Schedule
+  usecase "Configurer webhooks" as UC_WebhookCfg
+  usecase "Recevoir webhook entrant" as UC_WebhookIn
+
+  usecase "Recevoir notifications\net alertes" as UC_Notify
+  usecase "Consulter analytics\naudit et metrics" as UC_Analytics
+}
+
+User --> UC_Register
+User --> UC_Login
+User --> UC_Profile
+User --> UC_Pipeline
+User --> UC_Nodes
+User --> UC_Version
+User --> UC_Upload
+User --> UC_Datasource
+User --> UC_Run
+User --> UC_Logs
+User --> UC_Export
+User --> UC_Notify
+User --> UC_Analytics
+
+Admin --> UC_Org
+Admin --> UC_Roles
+Admin --> UC_Schedule
+Admin --> UC_WebhookCfg
+
+External --> UC_WebhookIn
+
+UC_Run .> UC_Logs : <<include>>
+UC_Run .> UC_Export : <<extend>>
+UC_Pipeline .> UC_Nodes : <<include>>
+UC_Org .> UC_Roles : <<include>>
+
+@enduml

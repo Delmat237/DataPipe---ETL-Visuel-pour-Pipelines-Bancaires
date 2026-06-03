@@ -1,0 +1,147 @@
+@startuml
+title DataPipe - Diagramme de Classes Metier
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide methods
+
+class User {
+  +id: String
+  +email: String
+  +name: String
+  +verified: Boolean
+}
+
+class UserSession {
+  +id: String
+  +jti: String
+  +revoked: Boolean
+  +expires_at: DateTime
+}
+
+class Org {
+  +id: String
+  +name: String
+  +slug: String
+  +plan: String
+}
+
+class OrgMember {
+  +id: String
+  +role: String
+}
+
+class Workspace {
+  +id: String
+  +name: String
+  +color: String
+}
+
+class Pipeline {
+  +id: String
+  +name: String
+  +status: String
+  +is_public: Boolean
+}
+
+class Node {
+  +id: String
+  +type_slug: String
+  +label: String
+}
+
+class Edge {
+  +id: String
+  +source_node_id: String
+  +target_node_id: String
+}
+
+class Run {
+  +id: String
+  +status: String
+  +trigger: String
+  +started_at: DateTime
+  +finished_at: DateTime
+}
+
+class RunLog {
+  +id: String
+  +level: String
+  +message: String
+}
+
+class File {
+  +id: String
+  +name: String
+  +rows_count: int
+  +columns_count: int
+}
+
+class Datasource {
+  +id: String
+  +type: String
+  +name: String
+  +sync_status: String
+}
+
+class Schedule {
+  +id: String
+  +cron: String
+  +timezone: String
+  +active: Boolean
+}
+
+class Webhook {
+  +id: String
+  +url: String
+  +active: Boolean
+}
+
+class WebhookEvent {
+  +id: String
+  +event_type: String
+  +status: String
+}
+
+class Notification {
+  +id: String
+  +type: String
+  +title: String
+  +read: Boolean
+}
+
+class Alert {
+  +id: String
+  +name: String
+  +channel: String
+  +active: Boolean
+}
+
+User "1" -- "0..*" UserSession
+User "1" -- "0..*" OrgMember
+Org "1" -- "0..*" OrgMember
+Org "1" -- "1..*" Workspace
+
+Workspace "1" -- "0..*" Pipeline
+Workspace "1" -- "0..*" File
+Workspace "1" -- "0..*" Datasource
+
+Pipeline "1" -- "0..*" Node
+Pipeline "1" -- "0..*" Edge
+Pipeline "1" -- "0..*" Run
+Pipeline "1" -- "0..1" Schedule
+Pipeline "1" -- "0..*" Webhook
+Pipeline "1" -- "0..*" Alert
+
+Run "1" -- "0..*" RunLog
+Webhook "1" -- "0..*" WebhookEvent
+User "1" -- "0..*" Notification
+
+note right of OrgMember
+role: viewer | editor | admin | owner
+end note
+
+note right of Run
+status: pending | running | success | error | cancelled
+end note
+
+@enduml

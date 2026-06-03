@@ -1,0 +1,23 @@
+@startuml
+title DataPipe - Etats-Transitions (Schedule et Datasource)
+skinparam shadowing false
+
+state "Schedule.active" as ScheduleState {
+  [*] --> Active
+  Active --> Paused : /schedule/pause
+  Paused --> Active : /schedule/resume
+}
+
+state "Datasource.sync_status" as DSSync {
+  [*] --> idle
+  idle --> syncing : /datasources/{id}/sync
+  syncing --> idle : sync terminee
+}
+
+state "WebhookEvent.status" as WHEvent {
+  [*] --> pending
+  pending --> delivered : test_webhook OK
+  pending --> received : inbound_webhook recu
+}
+
+@enduml

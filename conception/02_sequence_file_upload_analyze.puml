@@ -1,0 +1,35 @@
+@startuml
+title DataPipe - Sequence Technique Upload + Analyze
+autonumber
+skinparam shadowing false
+
+actor Client
+participant "files.py::upload_file()" as Upload
+participant "utils::check_org_role()" as RoleCheck
+database "Workspace/File ORM" as ORM
+collections "Filesystem uploads/" as FS
+participant "files.py::analyze_file()" as Analyze
+
+Client -> Upload : POST /api/v1/files/upload\n(workspace_id, multipart file)
+Upload -> ORM : Workspace.query.get(workspace_id)
+ORM --> Upload : workspace
+Upload -> RoleCheck : check_org_role(org_id, user_id, 'editor')
+RoleCheck --> Upload : true/false
+alt acces refuse
+  Upload --> Client : 403 Access denied
+else acces autorise
+  Upload -> FS : write uploads/<workspace_id>/<filename>
+  Upload -> Upload : parse CSV/JSON\n(columns, rows_count, preview)
+  Upload -> ORM : INSERT File(...)
+  ORM --> Upload : commit
+  Upload --> Client : 201 file.to_dict()
+end
+
+Client -> Analyze : POST /api/v1/files/{file_id}/analyze
+Analyze -> ORM : File.query.get_or_404(file_id)
+Analyze -> RoleCheck : check_org_role(org_id, user_id, 'viewer')
+RoleCheck --> Analyze : true
+Analyze -> Analyze : infer types depuis preview
+Analyze --> Client : 200 {columns analysis, quality_score}
+
+@enduml

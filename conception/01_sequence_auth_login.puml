@@ -1,0 +1,28 @@
+@startuml
+title DataPipe - Sequence Technique Login
+autonumber
+skinparam shadowing false
+
+actor Client
+participant "auth.py::login()" as Login
+participant "User (ORM)" as User
+participant "flask_jwt_extended" as JWT
+database "SQLite" as DB
+
+Client -> Login : POST /api/v1/auth/login(email,password)
+Login -> User : query.filter_by(email, deleted_at=None).first()
+User --> Login : user
+Login -> User : check_password(password)
+alt identifiants invalides
+  Login --> Client : 401 Invalid credentials
+else succes
+  Login -> JWT : create_access_token(identity=user.id)
+  JWT --> Login : access_token
+  Login -> JWT : create_refresh_token(identity=user.id, jti)
+  JWT --> Login : refresh_token
+  Login -> DB : INSERT UserSession(user_id,jti,ip,user_agent)
+  DB --> Login : commit
+  Login --> Client : 200 {access_token, refresh_token, expires_in, user}
+end
+
+@enduml
