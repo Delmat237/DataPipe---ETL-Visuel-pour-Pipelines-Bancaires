@@ -1,41 +1,45 @@
 @startuml
-title DataPipe - Diagramme de Packages (Analyse)
+title DataPipe - Diagramme de Packages d'Analyse (UML Systeme)
 top to bottom direction
 skinparam shadowing false
 skinparam packageStyle rectangle
 
-package "Presentation API\n(app/routes)" as API {
-  package "Auth" as PAuth
-  package "Organisation" as POrg
-  package "Pipelines" as PPipe
-  package "Execution" as PRun
-  package "Data Management" as PData
-  package "Automatisation" as PAuto
-  package "Observabilite" as PObs
+package "Interaction utilisateur" as PInteraction {
+  package "Portail operationnel" as Portail
+  package "Canal conversationnel Telegram" as CanalTelegram
 }
 
-package "Metier\n(app/models.py)" as Domain
-package "Services techniques\n(app/engine.py + app/utils.py)" as Services
-package "Infrastructure" as Infra {
-  package "Persistence SQLAlchemy" as Pers
-  package "Stockage fichiers" as Storage
-  package "Connecteurs externes" as Ext
+package "Couche applicative" as PApplicative {
+  package "Gestion des identites et acces" as Acces
+  package "Orchestration des pipelines" as Orchestration
+  package "Pilotage des executions" as Pilotage
+  package "Qualite, export et supervision" as Supervision
 }
 
-PAuth ..> Domain : cree/consulte
-POrg ..> Domain : gere roles/orgs
-PPipe ..> Domain : CRUD pipeline
-PRun ..> Services : execute pipeline
-PData ..> Services : validation,\nacces workspace
-PAuto ..> Domain : schedules,\nwebhooks, alerts
-PObs ..> Domain : notifications,\naudit, analytics
+package "Domaine metier" as PDomaine {
+  package "Organisation et gouvernance" as DomGouv
+  package "Pipeline et transformation" as DomPipe
+  package "Execution et resultat" as DomRun
+}
 
-Services ..> Domain : regles metier
-Services ..> Pers : ORM
-Services ..> Storage : uploads/results
-Services ..> Ext : IA / HTTP / Datasource
+package "Infrastructure" as PInfra {
+  package "Persistence relationnelle" as Pers
+  package "Stockage artefacts" as Artefacts
+  package "Connecteurs externes" as Conn
+  package "Service LLM" as PLLM
+}
 
-API ..> Services
-API ..> Domain
+Portail ..> PApplicative
+CanalTelegram ..> PApplicative
+
+Acces ..> PDomaine
+Orchestration ..> PDomaine
+Pilotage ..> PDomaine
+Supervision ..> PDomaine
+
+PApplicative ..> Pers
+PApplicative ..> Artefacts
+PApplicative ..> Conn
+PApplicative ..> PLLM
 
 @enduml

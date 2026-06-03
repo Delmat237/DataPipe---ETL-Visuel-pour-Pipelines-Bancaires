@@ -1,114 +1,106 @@
 @startuml
-title DataPipe - Diagramme de Classes Techniques
+title DataPipe - Diagramme de Classes Techniques Systeme (UML pur)
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 
-class Config {
-  +SECRET_KEY
-  +JWT_SECRET_KEY
-  +SQLALCHEMY_DATABASE_URI
-  +UPLOAD_FOLDER
+class InterfaceUtilisateur <<boundary>> {
+  +soumettreCommande()
+  +afficherEtatRun()
+  +afficherResultats()
 }
 
-class FlaskAppFactory {
-  +create_app(testing=False)
+class AssistantTelegramGateway <<boundary>> {
+  +recevoirMessage()
+  +retournerReponse()
 }
 
-class Extensions {
-  +db
-  +jwt
-  +bcrypt
-  +blacklisted_tokens
+class ServiceApplicatif <<control>> {
+  +authentifier()
+  +orchestrerPipeline()
+  +analyserDonnees()
+  +exporterResultats()
 }
 
-class Utils {
-  +validate_required()
-  +paginate()
-  +check_org_role()
-  +check_pipeline_access()
-  +run_results_path()
-  +log_audit()
-}
-
-class Engine {
-  +execute_pipeline()
-  -_toposort()
-  -_execute_node()
-}
-
-class RunsController {
-  +trigger_run()
-  +list_runs()
-  +cancel_run()
-  +retry_run()
-  -_execute_run()
-}
-
-class FilesController {
-  +upload_file()
-  +list_files()
-  +preview_file()
-  +analyze_file()
-}
-
-class AuthController {
-  +register()
+class AuthController <<control>> {
   +login()
-  +refresh_token()
-  +logout()
+  +refreshSession()
 }
 
-class ResultsController {
-  +get_run_results()
-  +download_result()
-  +export_result()
+class PipelineController <<control>> {
+  +createPipeline()
+  +updatePipeline()
+  +runPipeline()
 }
 
-class AIController {
-  +generate_transform()
-  +suggest_pipeline()
-  +chat()
+class FileController <<control>> {
+  +uploadFile()
+  +analyzeFile()
 }
 
-class PersistenceLayer {
-  +SQLAlchemy Models
+class MoteurTransformation <<control>> {
+  +executePipeline()
+  +evaluateNode()
 }
 
-class FileStorage {
-  +uploads/
-  +uploads/results/
+class LLMConnector <<control>> {
+  +generateTransform()
+  +explainNode()
 }
 
-class ExternalAdapters {
-  +OpenAI/Claude/OpenRouter
-  +HTTP fetch
-  +Datasource query
+class Pipeline <<entity>> {
+  +id
+  +status
+  +lastRunStatus
 }
 
-FlaskAppFactory --> Config
-FlaskAppFactory --> Extensions
-FlaskAppFactory --> AuthController
-FlaskAppFactory --> FilesController
-FlaskAppFactory --> RunsController
-FlaskAppFactory --> ResultsController
-FlaskAppFactory --> AIController
+class Run <<entity>> {
+  +id
+  +status
+  +trigger
+}
 
-AuthController ..> Utils
-FilesController ..> Utils
-RunsController ..> Utils
-ResultsController ..> Utils
+class FichierMetier <<entity>> {
+  +id
+  +rowsCount
+  +columnsCount
+}
 
-RunsController ..> Engine
-Engine ..> ExternalAdapters
+class SessionUtilisateur <<entity>> {
+  +id
+  +revoked
+}
 
-AuthController ..> PersistenceLayer
-FilesController ..> PersistenceLayer
-RunsController ..> PersistenceLayer
-ResultsController ..> PersistenceLayer
-AIController ..> PersistenceLayer
+class Repository <<entity>> {
+  +save()
+  +findById()
+  +query()
+}
 
-FilesController ..> FileStorage
-RunsController ..> FileStorage
-ResultsController ..> FileStorage
+database "BaseDonnees <<entity>>" as DB
+collections "StockageArtefacts <<entity>>" as Storage
+
+InterfaceUtilisateur --> ServiceApplicatif
+AssistantTelegramGateway --> ServiceApplicatif
+
+ServiceApplicatif --> AuthController
+ServiceApplicatif --> PipelineController
+ServiceApplicatif --> FileController
+
+PipelineController --> MoteurTransformation
+MoteurTransformation --> LLMConnector
+
+AuthController --> SessionUtilisateur
+PipelineController --> Pipeline
+PipelineController --> Run
+FileController --> FichierMetier
+
+SessionUtilisateur --> Repository
+Pipeline --> Repository
+Run --> Repository
+FichierMetier --> Repository
+Repository --> DB
+
+PipelineController --> Storage
+FileController --> Storage
 
 @enduml

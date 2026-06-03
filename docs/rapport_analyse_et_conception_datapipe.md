@@ -1,110 +1,50 @@
 # Rapport academique d'analyse et de conception
-## Systeme DataPipe - plateforme ETL visuelle complete pour pipelines bancaires
+## Systeme DataPipe - ETL visuel pour pipelines bancaires
 
 ### Resume
 
-Le present rapport expose un travail d'analyse et de conception mene a l'echelle d'un systeme complet. DataPipe y est traite comme une plateforme integree qui associe une couche de presentation frontend, une couche applicative backend, une couche de persistance et une couche d'integration avec des services externes. Cette posture est volontairement systemique, car la valeur du produit ne provient pas d'une simple exposition d'endpoints, mais de la cooperation de plusieurs sous-systemes qui transforment un besoin metier en resultat exploitable.
+Ce rapport presente une modelisation et une conception orientees systeme. DataPipe est traite comme un ensemble coherent de composants de dialogue, de services applicatifs, de controle de processus, de persistance et d'integration intelligente. La logique retenue est strictement UML et se concentre sur les objets metier, les services, les controleurs et les interactions entre acteurs humains et acteurs logiciels.
 
-L'objectif du systeme est de permettre la conception visuelle de pipelines ETL, leur execution fiable, leur supervision en continu et la diffusion de leurs sorties dans des formats utiles aux metiers bancaires. Le rapport distingue la phase d'analyse, orientee expression du besoin et modelisation du domaine, de la phase de conception, orientee architecture technique et comportement dynamique des composants. Les diagrammes UML produits dans les dossiers `analyses` et `conception` constituent des vues complementaires d'un meme systeme et non des artefacts isoles.
+Le cadre du defi 9 impose de repondre a un besoin de transformation de donnees bancaires dans un contexte contraint par la qualite des donnees, la conformite et le temps de production des reportings. Le systeme doit donc permettre la conception de pipelines, l'execution supervisee, l'assistance intelligente via LLM, et l'exploitation operationnelle via un assistant Telegram. Cette double capacite, automatisation structurelle et interaction conversationnelle, constitue le coeur de l'architecture proposee.
 
-### Introduction generale
+### 1. Positionnement systeme
 
-Les organisations financieres manipulent des donnees heterogenes dont la qualite conditionne la conformite, la performance operationnelle et la prise de decision. Le traitement de ces donnees ne peut plus etre considere comme une chaine purement technique executee en arriere-plan. Il s'agit d'un processus socio-technique complet, dans lequel des utilisateurs interagissent avec une interface, definissent des intentions de transformation, declenchent des traitements et interpretent des etats restitues par la plateforme.
+DataPipe est un systeme applicatif de pilotage de flux de donnees. Son objectif est de reduire les manipulations manuelles et d'augmenter la fiabilite des transformations. Le systeme opere sur un cycle complet qui commence par une commande utilisateur, se poursuit par une orchestration de services, et se termine par un etat metier persistant et auditable. La frontiere fonctionnelle couvre l'authentification, la gouvernance des roles, la conception de pipeline, la gestion des sources, l'execution, la supervision, l'export et l'assistance intelligente.
 
-DataPipe repond a cette realite par une architecture de plateforme. Le frontend porte la logique d'interaction, de visualisation des graphes ETL et d'assistance a la decision. Le backend porte la logique d'orchestration, de securite, de persistance et d'integration. Les deux couches forment un systeme unique, dont la qualite depend autant de la coherence du domaine metier que de la robustesse technique.
+La modelisation de contexte etablie dans `analyses/01_contexte_systeme.puml` formalise les acteurs principaux suivants, l'operateur metier, l'administrateur plateforme, l'auditeur interne, l'assistant Telegram, le LLM externe et les systemes tiers de donnees. Cette vue montre que le systeme est multi-acteurs et multi-canaux.
 
-L'ambition de ce rapport est d'etablir cette coherence de maniere explicite. Il ne s'agit pas seulement de decrire des composants logiciels, mais de montrer comment les besoins metiers, les parcours utilisateurs et les mecanismes techniques s'alignent dans une conception defendable en contexte academique exigeant.
+### 2. Structuration d'analyse en UML
 
-### Cadre methodologique
+Le diagramme de packages d'analyse `analyses/02_packages_analyse.puml` organise le systeme en quatre ensembles. Le premier ensemble est celui de l'interaction utilisateur, qui regroupe le portail operationnel et le canal Telegram. Le second ensemble est la couche applicative qui porte les capacites de gouvernance, d'orchestration et de supervision. Le troisieme ensemble est le domaine metier qui formalise les objets de reference. Le quatrieme ensemble est l'infrastructure qui assure persistance, stockage d'artefacts, connecteurs externes et service LLM.
 
-La methode adoptee suit une progression en trois niveaux. Le premier niveau est macroscopique et delimite le systeme dans son environnement. Le second niveau est mesoscopique et structure les responsabilites fonctionnelles en sous-ensembles coherents. Le troisieme niveau est microscopique et detaille les interactions techniques, les classes et les cycles d'etat.
+Le diagramme de cas d'usage `analyses/03_use_cases.puml` traduit les attentes de chaque acteur. L'operateur metier pilote les executions et les resultats. L'administrateur gouverne les roles et l'automatisation. L'auditeur exploite les traces. L'assistant Telegram interagit avec le systeme pour les operations conversationnelles. Le LLM intervient comme acteur logiciel de recommandation et d'assistance.
 
-Cette progression garantit la tracabilite des decisions. Les besoins exprimes a l'echelle fonctionnelle sont relies a des modeles conceptuels, puis transformes en choix d'architecture, en sequences techniques et en automates d'etat. La demarche preserve ainsi la continuite entre ce que le systeme doit faire, ce qu'il doit representer et la maniere dont il l'executera.
+Le diagramme de classes metier `analyses/04_classes_metier.puml` formalise les entites de gouvernance, de pipeline, d'execution, de donnees et d'assistance. Les objets `ConversationSession`, `AssistantRequest` et `AIRecommendation` ont ete introduits pour representer explicitement la dynamique Telegram/LLM dans le modele metier.
 
-### Partie I - Analyse du systeme
+### 3. Conception technique UML pure
 
-#### 1. Contexte systeme et delimitation des frontieres
+La conception est exprimee en UML pur selon les stereotypes `boundary`, `control` et `entity`. Les diagrammes de sequence techniques sont volontairement normalises autour de quatre elements, l'interface, le service applicatif, le controleur et les objets de base de donnees.
 
-Le systeme DataPipe s'insere dans un ecosysteme de donnees ou interagissent utilisateurs metiers, administrateurs, services de donnees externes, fournisseurs IA et canaux d'evenements de type webhook. Le diagramme de contexte `analyses/01_contexte_systeme.puml` represente ce positionnement global. Il doit etre lu comme une vue d'ensemble de la plateforme, dans laquelle le coeur applicatif backend joue le role d'orchestrateur, tandis que le frontend joue le role d'interface de pilotage.
+Le diagramme `conception/01_sequence_auth_login.puml` decrit l'authentification comme un enchainement entre une interface de commande, un service d'authentification, un controleur d'acces et les entites `Utilisateur` et `SessionUtilisateur` persistees en base.
 
-La frontiere du systeme inclut donc la capture des intentions utilisateurs, leur traduction en operations metiers, l'execution des transformations, la persistance des etats et la restitution de resultats. Cette frontiere depasse le cadre strict des routes HTTP. Elle couvre l'experience d'usage complete, depuis l'action de l'utilisateur dans l'interface jusqu'a l'effet durable en base ou en stockage de fichiers.
+Le diagramme `conception/02_sequence_file_upload_analyze.puml` decrit le processus d'ingestion et d'analyse de fichier selon le meme principe. L'interface soumet la commande, le service coordonne, le controleur applique les regles d'acces, l'entite `Fichier` est persistee, puis l'analyse est produite et retournee.
 
-#### 2. Structuration fonctionnelle en sous-systemes
+Le diagramme `conception/03_sequence_pipeline_run.puml` decrit le pilotage d'execution en introduisant explicitement l'assistant Telegram et le connecteur LLM. Le systeme traite une commande, orchestre le moteur de transformation, sollicite le LLM si necessaire, met a jour les objets `Pipeline` et `Run`, puis expose l'etat final aux canaux d'interaction.
 
-Le diagramme de packages `analyses/02_packages_analyse.puml` formalise l'organisation du sous-systeme applicatif. Dans une perspective plateforme, cette organisation se connecte a deux autres ensembles. En amont, un sous-systeme de presentation qui consomme les services metiers. En aval, un sous-systeme d'infrastructure qui porte stockage, persistance et integrabilite.
+Le diagramme de classes techniques `conception/04_classes_techniques.puml` consolide cette architecture. Les classes `InterfaceUtilisateur` et `AssistantTelegramGateway` representent les frontieres de dialogue. `ServiceApplicatif`, `AuthController`, `PipelineController` et `FileController` representent les mecanismes de controle. Les classes `Pipeline`, `Run`, `SessionUtilisateur` et `FichierMetier` representent les entites techniques persistees.
 
-Cette decomposition respecte le principe de separation des preoccupations. Les fonctions d'identite et de gouvernance sont distinctes des fonctions d'orchestration ETL. Les fonctions d'observabilite sont distinctes des fonctions de transformation. Le resultat est une architecture lisible, favorable a la maintenabilite et a l'evolutivite, condition essentielle pour un systeme appele a croitre en perimetre.
+Les diagrammes d'etats-transitions `conception/05_etat_transition_run.puml` et `conception/06_etat_transition_schedule_datasource.puml` formalisent la dynamique du systeme. Le cycle de `Run` integre un etat d'attente d'assistance IA. Les cycles de synchronisation et d'interaction conversationnelle explicitent les etats de reprise et d'escalade.
 
-#### 3. Cas d'usage de bout en bout
+### 4. Acteurs principaux et responsabilites
 
-Le diagramme `analyses/03_use_cases.puml` decrit les services attendus par les acteurs. Dans une lecture systemique, chaque cas d'usage est un parcours transverse. Une operation commence par une interaction frontend, est interpretee par les services backend, puis est restituee a l'utilisateur sous forme d'etat, de donnee ou de notification.
+L'operateur metier est responsable de la configuration et du pilotage des flux. L'administrateur plateforme est responsable de la gouvernance des acces et de l'automatisation. L'auditeur interne est responsable de l'exploitation des traces et de la verification de conformite. L'assistant Telegram est un acteur logiciel de mediation operationnelle. Le LLM est un acteur logiciel d'assistance a la decision de transformation.
 
-Cette approche permet de traiter les cas d'usage non comme des appels techniques unitaires mais comme des transactions metier completement tracees. Elle rend egalement visible l'interdependance entre ergonomie d'interface et qualite de service applicatif. Un cas d'usage n'est satisfait qu'a la condition que la cooperation inter-couches soit coherente et comprehensible pour l'acteur qui l'initie.
+Cette distribution des responsabilites est centrale dans la qualite du systeme car elle separe clairement le pilotage metier, le controle organisationnel et les mecanismes d'aide intelligente.
 
-#### 4. Modele conceptuel metier
+### 5. Coherence avec le modele economique
 
-Le diagramme `analyses/04_classes_metier.puml` structure les entites centrales du domaine. Les objets de gouvernance d'acces, les objets de construction des pipelines, les objets d'execution, les objets de donnees et les objets de supervision y sont relies par des associations explicites. Ce modele constitue le langage commun du systeme. Le frontend s'y aligne pour presenter les bonnes abstractions aux utilisateurs. Le backend s'y aligne pour appliquer les regles de coherence.
+Le modele economique associe a cette architecture est disponible dans `docs/modele_economique_datapipe_cameroun.md`. Il est fonde sur une valeur de systeme et non sur une valeur d'endpoint, avec une promesse de reduction des couts de traitement, de baisse du risque operationnel et d'amelioration de la tracabilite. Le role du LLM et de l'assistant Telegram y est integre comme levier de productivite et de rapidite d'exploitation.
 
-L'interet academique de ce modele est sa capacite a unifier le sens metier au travers des couches. Une notion comme `Run`, `Pipeline` ou `Workspace` garde une definition stable entre analyse, conception et implementation. Cette stabilite semantique est un facteur decisif de qualite dans un projet multi-composants.
+### 6. Conclusion
 
-#### 5. Exigences non fonctionnelles de niveau plateforme
-
-L'analyse systeme fait emerger des exigences transversales. La securite ne se limite pas au controle d'acces des endpoints ; elle inclut la gestion des tokens dans l'interface, la protection des secrets, la maitrise des sessions et la reduction de l'exposition des donnees sensibles. La fiabilite ne se limite pas a l'execution du moteur ETL ; elle inclut la lisibilite des erreurs pour l'utilisateur et la coherence des transitions d'etat.
-
-La tracabilite concerne l'ensemble de la chaine. Elle doit relier action utilisateur, commande applicative, evenement de run et sortie persistee. L'exploitabilite implique des logs, des metriques et des signaux de supervision capables d'etre interpretes aussi bien par l'equipe technique que par les responsables metiers. Enfin, la performance percue depend de la qualite de dialogue entre frontend et backend, non d'un seul composant.
-
-### Partie II - Conception du systeme
-
-#### 1. Architecture logique globale
-
-La conception retenue s'appuie sur une architecture en couches cooperantes. La couche de presentation frontend prend en charge la visualisation des pipelines, l'orchestration des parcours utilisateur et la restitution des etats. La couche applicative backend transforme ces interactions en operations metiers securisees. La couche de persistance conserve les etats et les historiques. La couche d'integration assure l'ouverture vers les services externes.
-
-Cette architecture etablit un contrat clair entre experience et execution. Le frontend n'implemente pas les regles metiers critiques. Le backend n'impose pas de logique d'ergonomie. Chacun remplit sa responsabilite tout en restant aligne sur le meme modele de domaine. Cet alignement limite les incoherences et facilite les evolutions.
-
-#### 2. Sequences techniques et lecture inter-couches
-
-Les diagrammes de sequence dans `conception` formalisent les flux techniques internes du coeur applicatif. Leur lecture systeme ajoute explicitement une etape de declenchement et de restitution cote interface. Dans `conception/01_sequence_auth_login.puml`, la connexion est un parcours complet qui va de la saisie utilisateur a l'etablissement d'une session exploitable par le frontend.
-
-Dans `conception/02_sequence_file_upload_analyze.puml`, l'upload et l'analyse constituent une chaine continue ou l'interface collecte la commande, le backend assure validation et persistance, puis renvoie des informations interpretablees dans un ecran de controle qualite. Dans `conception/03_sequence_pipeline_run.puml`, la supervision de l'execution depend de la fidelite des informations remontant du moteur vers l'interface.
-
-Ces sequences montrent que la qualite du systeme depend autant de l'ordonnancement technique que de la capacite a exposer des etats metier intelligibles aux utilisateurs finaux.
-
-#### 3. Conception des classes techniques
-
-Le diagramme `conception/04_classes_techniques.puml` formalise les dependances du sous-systeme applicatif backend, notamment entre factory d'application, controleurs, utilitaires, moteur ETL, persistance et adaptateurs externes. Dans une vue plateforme, ce schema est complete par une couche de services frontend qui agit comme client metier structure de ces composants.
-
-Le choix architectural majeur consiste a centraliser la logique d'execution dans des services dedies, afin d'eviter la dispersion des regles dans les routes de presentation. Ce choix favorise la testabilite et la robustesse. Il permet aussi a la couche frontend de rester concentree sur l'experience utilisateur et la composition d'ecrans.
-
-#### 4. Conception dynamique par etats-transitions
-
-Les automates representes dans `conception/05_etat_transition_run.puml` et `conception/06_etat_transition_schedule_datasource.puml` structurent le comportement dynamique du systeme. La modelisation des etats de `Run` garantit la lisibilite du cycle de traitement. La modelisation de `Schedule` et `Datasource` formalise la gouvernance de l'automatisation et de la synchronisation.
-
-A l'echelle systeme, ces etats doivent etre propagés et interpretes correctement dans la couche de presentation. Une transition technique non visible ou mal interpretee cote interface degrade la maitrise operationnelle, meme si l'execution backend est correcte. Cette exigence justifie une conception orientee contrat d'etat entre couches.
-
-#### 5. Arbitrages techniques et consequences systemes
-
-Les choix de persistance locale, de stockage fichier local et de certains mecanismes memoire sont adequats pour une phase de consolidation rapide. Ils simplifient l'exploitation initiale, mais limitent la scalabilite et la resilience multi-instance. Dans une perspective systeme, ces limites concernent directement la qualite percue par les utilisateurs, notamment en charge ou en contexte distribue.
-
-La trajectoire d'evolution naturelle inclut une base de donnees plus robuste, un stockage partage des resultats, un ordonnanceur persistant et un renforcement du pilotage evenementiel. Le modele actuel facilite cette trajectoire, car les responsabilites sont deja relativement bien separees.
-
-#### 6. Securite, qualite et verification
-
-La securite doit etre validee comme propriete globale de la plateforme. La couche backend applique controle d'acces et gestion de session. La couche frontend doit appliquer des politiques de conservation, de renouvellement et d'invalidation de contexte utilisateur conformes. Les deux dimensions sont inseparables.
-
-La qualite logicielle est soutenue par une base de tests backend significative. Pour une couverture systeme complete, cette base doit etre completee par des validations de parcours frontend-backend, des tests de non-regression d'interface et des tests de charge axes sur l'experience utilisateur. Ce couplage des strategies de test est coherent avec le positionnement plateforme du projet.
-
-### Discussion critique et perspectives
-
-L'adaptation du rapport a une lecture systeme renforce sa validite academique. Elle permet d'eviter une reduction du projet a son seul coeur applicatif et rend justice a la nature reelle de la solution, qui combine interaction humaine, logique metier, execution technique et gouvernance des donnees.
-
-Les perspectives prioritaires portent sur l'enrichissement explicite de la modelisation de la couche frontend, la mesure de la performance percue, l'instrumentation de bout en bout et la formalisation de contrats d'etat plus stricts entre presentation et services. Ces axes permettraient de passer d'une plateforme solide en phase de maturation a une solution pleinement industrialisable.
-
-### Conclusion generale
-
-Ce rapport etabli que DataPipe doit etre compris et concu comme un systeme complet. L'analyse a clarifie les acteurs, les processus et le modele metier commun. La conception a formalise les mecanismes techniques qui rendent ces processus executables et controlables. L'ensemble constitue une base robuste pour la soutenance et pour les evolutions futures.
-
-Les diagrammes UML produits dans `analyses` et `conception` gardent toute leur pertinence lorsqu'ils sont interpretes comme des vues partielles d'une architecture globale frontend-backend-donnees-integrations. Cette interpretation systemique est la plus conforme a une exigence academique elevee et a la realite d'un produit logiciel de type plateforme.
-
-### Annexe - References aux diagrammes UML du projet
-
-Le corpus d'analyse est disponible dans `analyses/01_contexte_systeme.puml`, `analyses/02_packages_analyse.puml`, `analyses/03_use_cases.puml` et `analyses/04_classes_metier.puml`. Le corpus de conception est disponible dans `conception/01_sequence_auth_login.puml`, `conception/02_sequence_file_upload_analyze.puml`, `conception/03_sequence_pipeline_run.puml`, `conception/04_classes_techniques.puml`, `conception/05_etat_transition_run.puml` et `conception/06_etat_transition_schedule_datasource.puml`.
+La refonte de l'analyse et de la conception en UML pur confirme que DataPipe est un systeme applicatif complet articule autour d'une couche de service, de controleurs, d'objets persistes et de canaux d'interaction intelligents. La modelisation prend explicitement en compte l'assistant Telegram et le LLM comme acteurs structurants de la solution. Cette representation est adaptee a une soutenance exigeante car elle rend visibles les mecanismes de valeur, de controle et de robustesse du systeme.

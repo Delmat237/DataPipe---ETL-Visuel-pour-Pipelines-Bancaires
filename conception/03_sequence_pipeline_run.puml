@@ -1,35 +1,46 @@
 @startuml
-title DataPipe - Sequence Technique Execution Pipeline
+title DataPipe - Sequence Technique Pilotage Pipeline (UML pur)
 autonumber
 skinparam shadowing false
 
-actor Client
-participant "runs.py::trigger_run()" as Trigger
-participant "utils::check_pipeline_access()" as Access
-database "Pipeline/Run ORM" as ORM
-participant "runs.py::_execute_run()" as ExecRun
-participant "engine.py::execute_pipeline()" as Engine
-collections "Filesystem uploads/results" as FS
+actor "Operateur metier" as U
+actor "Assistant Telegram" as TG
+participant "Interface <<boundary>>" as IHM
+participant "ServiceOrchestration <<control>>" as Service
+participant "RunController <<control>>" as Ctrl
+participant "MoteurTransformation <<control>>" as Engine
+participant "LLMConnector <<control>>" as LLM
+participant "Pipeline <<entity>>" as Pipeline
+participant "Run <<entity>>" as Run
+database "BaseDonnees <<entity>>" as DB
+collections "StockageResultats <<entity>>" as Storage
 
-Client -> Trigger : POST /api/v1/pipelines/{pipeline_id}/run
-Trigger -> Access : check_pipeline_access(pipeline_id, user_id)
-Access --> Trigger : pipeline
-Trigger -> ORM : INSERT Run(status='pending', trigger='manual')
-ORM --> Trigger : run
-Trigger -> ExecRun : _execute_run(pipeline, run)
+U -> IHM : Declencher execution pipeline
+IHM -> Service : run(pipeline_id)
+Service -> Ctrl : trigger(pipeline_id)
+Ctrl -> Pipeline : charger(pipeline_id)
+Pipeline -> DB : lecture pipeline
+DB --> Pipeline : definition pipeline
+Ctrl -> Run : creer(status=pending)
+Run -> DB : persister run
+DB --> Run : commit
 
-ExecRun -> ORM : run.status='running' + commit
-ExecRun -> Engine : execute_pipeline(nodes, edges,\nfile_loader, sql_generator,\ndatasource_query, http_fetch)
-Engine -> Engine : _toposort() + _execute_node()*
-Engine --> ExecRun : {status, node_results, errors}
+Ctrl -> Engine : executer(pipeline, run)
+Engine -> LLM : demander assistance (si noeud IA)
+LLM --> Engine : recommandations / SQL
+Engine -> Engine : traiter noeuds et transitions
+Engine --> Ctrl : etat final + resultats
 
-ExecRun -> ORM : INSERT RunLog(...)
-ExecRun -> ORM : update Run(status,node_results,error_message)
-ExecRun -> FS : write uploads/results/{run_id}.json
-ExecRun -> ORM : update Pipeline(last_run_at,last_run_status)
-ORM --> ExecRun : commit
-ExecRun --> Trigger : done
+Ctrl -> Run : maj(status,node_results)
+Run -> DB : mise a jour run
+Ctrl -> Storage : ecrire resultat complet
+Ctrl -> Pipeline : maj(last_run_status)
+Pipeline -> DB : commit
 
-Trigger --> Client : 201 run.to_dict(include_results=True)
+Ctrl --> Service : execution terminee
+Service --> IHM : etat run + acces resultats
+
+TG -> Service : requete statut run
+Service --> TG : progression / completion
 
 @enduml

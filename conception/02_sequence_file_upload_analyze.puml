@@ -1,35 +1,43 @@
 @startuml
-title DataPipe - Sequence Technique Upload + Analyze
+title DataPipe - Sequence Technique Ingestion et Analyse (UML pur)
 autonumber
 skinparam shadowing false
 
-actor Client
-participant "files.py::upload_file()" as Upload
-participant "utils::check_org_role()" as RoleCheck
-database "Workspace/File ORM" as ORM
-collections "Filesystem uploads/" as FS
-participant "files.py::analyze_file()" as Analyze
+actor "Operateur metier" as U
+participant "Interface <<boundary>>" as IHM
+participant "ServiceIngestion <<control>>" as Service
+participant "FichierController <<control>>" as Ctrl
+participant "RegleAcces <<control>>" as Regles
+participant "Fichier <<entity>>" as File
+database "BaseDonnees <<entity>>" as DB
+collections "StockageFichier <<entity>>" as Storage
 
-Client -> Upload : POST /api/v1/files/upload\n(workspace_id, multipart file)
-Upload -> ORM : Workspace.query.get(workspace_id)
-ORM --> Upload : workspace
-Upload -> RoleCheck : check_org_role(org_id, user_id, 'editor')
-RoleCheck --> Upload : true/false
+U -> IHM : Deposer fichier + workspace
+IHM -> Service : initier ingestion
+Service -> Ctrl : upload(file, workspace)
+Ctrl -> Regles : verifier droits (editor)
+Regles --> Ctrl : autorise / refuse
 alt acces refuse
-  Upload --> Client : 403 Access denied
+  Ctrl --> Service : refus d'acces
+  Service --> IHM : erreur d'autorisation
 else acces autorise
-  Upload -> FS : write uploads/<workspace_id>/<filename>
-  Upload -> Upload : parse CSV/JSON\n(columns, rows_count, preview)
-  Upload -> ORM : INSERT File(...)
-  ORM --> Upload : commit
-  Upload --> Client : 201 file.to_dict()
+  Ctrl -> Storage : ecrire artefact
+  Ctrl -> Ctrl : extraire metadonnees
+  Ctrl -> File : instancier objet metier
+  File -> DB : persister
+  DB --> File : commit
+  Ctrl --> Service : fiche fichier
+  Service --> IHM : confirmation ingestion
 end
 
-Client -> Analyze : POST /api/v1/files/{file_id}/analyze
-Analyze -> ORM : File.query.get_or_404(file_id)
-Analyze -> RoleCheck : check_org_role(org_id, user_id, 'viewer')
-RoleCheck --> Analyze : true
-Analyze -> Analyze : infer types depuis preview
-Analyze --> Client : 200 {columns analysis, quality_score}
+U -> IHM : Demander analyse du fichier
+IHM -> Service : analyser(file_id)
+Service -> Ctrl : analyze(file_id)
+Ctrl -> File : charger(file_id)
+File -> DB : lire
+DB --> File : objet fichier
+Ctrl -> Ctrl : inferer colonnes/types
+Ctrl --> Service : rapport qualite
+Service --> IHM : resultat analyse
 
 @enduml

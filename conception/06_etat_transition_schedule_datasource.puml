@@ -1,23 +1,28 @@
 @startuml
-title DataPipe - Etats-Transitions (Schedule et Datasource)
+title DataPipe - Etats-Transitions Orchestration (UML pur)
 skinparam shadowing false
 
 state "Schedule.active" as ScheduleState {
   [*] --> Active
-  Active --> Paused : /schedule/pause
-  Paused --> Active : /schedule/resume
+  Active --> Paused : suspension
+  Paused --> Active : reprise
 }
 
 state "Datasource.sync_status" as DSSync {
   [*] --> idle
-  idle --> syncing : /datasources/{id}/sync
+  idle --> syncing : demande synchronisation
   syncing --> idle : sync terminee
+  syncing --> failed : erreur connecteur
+  failed --> syncing : relance
 }
 
-state "WebhookEvent.status" as WHEvent {
-  [*] --> pending
-  pending --> delivered : test_webhook OK
-  pending --> received : inbound_webhook recu
+state "AssistantInteraction.status" as AState {
+  [*] --> queued
+  queued --> processing : message recu
+  processing --> answered : reponse generee
+  processing --> escalated : confiance insuffisante
+  escalated --> answered : validation humaine
+  processing --> failed : erreur service
 }
 
 @enduml

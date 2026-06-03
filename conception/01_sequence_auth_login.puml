@@ -1,28 +1,31 @@
 @startuml
-title DataPipe - Sequence Technique Login
+title DataPipe - Sequence Technique Authentification (UML pur)
 autonumber
 skinparam shadowing false
 
-actor Client
-participant "auth.py::login()" as Login
-participant "User (ORM)" as User
-participant "flask_jwt_extended" as JWT
-database "SQLite" as DB
+actor "Utilisateur" as U
+participant "Interface <<boundary>>" as IHM
+participant "ServiceAuthentification <<control>>" as Service
+participant "AuthController <<control>>" as Ctrl
+participant "Utilisateur <<entity>>" as User
+participant "SessionUtilisateur <<entity>>" as Session
+database "BaseDonnees <<entity>>" as DB
 
-Client -> Login : POST /api/v1/auth/login(email,password)
-Login -> User : query.filter_by(email, deleted_at=None).first()
-User --> Login : user
-Login -> User : check_password(password)
+U -> IHM : Saisir identifiants
+IHM -> Service : Demander authentification
+Service -> Ctrl : login(credentials)
+Ctrl -> User : rechercher(email)
+User --> Ctrl : utilisateur
+Ctrl -> Ctrl : verifier mot de passe
 alt identifiants invalides
-  Login --> Client : 401 Invalid credentials
+  Ctrl --> Service : refus
+  Service --> IHM : message d'erreur
 else succes
-  Login -> JWT : create_access_token(identity=user.id)
-  JWT --> Login : access_token
-  Login -> JWT : create_refresh_token(identity=user.id, jti)
-  JWT --> Login : refresh_token
-  Login -> DB : INSERT UserSession(user_id,jti,ip,user_agent)
-  DB --> Login : commit
-  Login --> Client : 200 {access_token, refresh_token, expires_in, user}
+  Ctrl -> Session : creer session
+  Session -> DB : persister session + jetons
+  DB --> Session : commit
+  Ctrl --> Service : contexte de session
+  Service --> IHM : succes + contexte utilisateur
 end
 
 @enduml

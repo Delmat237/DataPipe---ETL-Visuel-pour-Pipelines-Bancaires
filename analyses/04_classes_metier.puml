@@ -1,5 +1,5 @@
 @startuml
-title DataPipe - Diagramme de Classes Metier
+title DataPipe - Diagramme de Classes Metier Systeme (UML)
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 hide methods
@@ -116,6 +116,27 @@ class Alert {
   +active: Boolean
 }
 
+class ConversationSession {
+  +id: String
+  +channel: String
+  +context_ref: String
+  +created_at: DateTime
+}
+
+class AssistantRequest {
+  +id: String
+  +intent: String
+  +prompt: Text
+  +status: String
+}
+
+class AIRecommendation {
+  +id: String
+  +kind: String
+  +confidence: Float
+  +created_at: DateTime
+}
+
 User "1" -- "0..*" UserSession
 User "1" -- "0..*" OrgMember
 Org "1" -- "0..*" OrgMember
@@ -135,6 +156,10 @@ Pipeline "1" -- "0..*" Alert
 Run "1" -- "0..*" RunLog
 Webhook "1" -- "0..*" WebhookEvent
 User "1" -- "0..*" Notification
+User "1" -- "0..*" ConversationSession
+ConversationSession "1" -- "0..*" AssistantRequest
+AssistantRequest "0..*" -- "0..*" AIRecommendation
+AIRecommendation "0..*" -- "0..1" Pipeline
 
 note right of OrgMember
 role: viewer | editor | admin | owner
@@ -142,6 +167,10 @@ end note
 
 note right of Run
 status: pending | running | success | error | cancelled
+end note
+
+note right of AssistantRequest
+status: queued | processing | completed | failed
 end note
 
 @enduml

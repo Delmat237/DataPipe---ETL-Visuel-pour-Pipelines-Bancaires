@@ -1,18 +1,22 @@
 @startuml
-title DataPipe - Diagramme d'Etats-Transitions (Run)
+title DataPipe - Diagramme d'Etats-Transitions Run (UML pur)
 skinparam shadowing false
 
 [*] --> pending : creation Run
-pending --> running : trigger_run() / _execute_run()
+pending --> running : commande execute
 
-running --> success : execution complete sans erreur
-running --> error : erreur moteur / noeud
-pending --> cancelled : cancel_run()
-running --> cancelled : cancel_run()
+running --> waiting_ai : noeud IA requis
+waiting_ai --> running : reponse LLM recue
+
+running --> success : execution complete
+running --> error : erreur traitement
+pending --> cancelled : annulation
+running --> cancelled : annulation
 
 success --> [*]
 error --> [*]
 cancelled --> [*]
+waiting_ai --> error : timeout / echec IA
 
 note right of running
 Mises a jour techniques:

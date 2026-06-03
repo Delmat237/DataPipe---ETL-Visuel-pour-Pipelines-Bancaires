@@ -1,34 +1,37 @@
 @startuml
-title DataPipe - Diagramme de Contexte
+title DataPipe - Diagramme de Contexte Systeme (UML)
 left to right direction
 skinparam shadowing false
 skinparam packageStyle rectangle
 
-actor "Utilisateur Metier" as User
-actor "Administrateur" as Admin
-actor "Systeme Externe\n(emetteur webhook)" as External
+actor "Operateur metier" as Operateur
+actor "Administrateur plateforme" as Admin
+actor "Auditeur / Controle interne" as Auditeur
+actor "Assistant Telegram" as Telegram
+actor "LLM Externe" as LLM
+actor "Systeme tiers\n(API / Core banking / Webhook)" as Tiers
 
-rectangle "DataPipe API\n(Flask + JWT + SQLAlchemy)" as DataPipe
-database "SQLite\n(datapipe.db)" as DB
-folder "Fichiers locaux\nuploads/" as FS
-cloud "Services IA\n(OpenAI / Anthropic / OpenRouter)" as AI
-cloud "Sources externes\n(DB/API via Datasource)" as Sources
+rectangle "Systeme DataPipe" as Systeme {
+  rectangle "Couche interaction\n(portail + conversation)" as Interaction
+  rectangle "Couche applicative" as Applicative
+  rectangle "Couche donnees\n(etat metier)" as Donnees
+}
 
-User --> DataPipe : Utilise endpoints REST
-Admin --> DataPipe : Configure orgs,\nroles, integrations
-External --> DataPipe : POST inbound webhook
+database "Base de donnees" as DB
+folder "Stockage de fichiers\n(uploads, resultats)" as Storage
+cloud "Connecteurs de donnees" as Connecteurs
 
-DataPipe --> DB : Persiste metadonnees\net etats
-DataPipe --> FS : Lit/ecrit fichiers\net resultats
-DataPipe --> AI : Generation IA\n(SQL, suggestions, chat)
-DataPipe --> Sources : Requetes datasource\net appels HTTP
+Operateur --> Interaction : Configure et pilote les flux
+Admin --> Interaction : Gouverne l'acces et les environnements
+Auditeur --> Interaction : Consulte preuves et traces
+Telegram --> Interaction : Dialogue operationnel
 
-note bottom of DataPipe
-API versionnee sous /api/v1
-Modules: auth, orgs, pipelines, nodes,
-runs, files, transform, ai, results,
-scheduling, webhooks, notifications,
-analytics, api-keys, health
-end note
+Interaction --> Applicative : Commandes metier
+Applicative --> Donnees : Mise a jour des objets metier
+Donnees --> DB : Persistance relationnelle
+Applicative --> Storage : Lecture/ecriture artefacts
+Applicative --> Connecteurs : Ingestion/exposition
+Applicative --> LLM : Assistance intelligente
+Tiers --> Applicative : Evenements et echanges
 
 @enduml
