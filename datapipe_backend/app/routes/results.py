@@ -1,17 +1,35 @@
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify, send_file, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from datetime import datetime
 import io
+import os
 import csv
 import json
 
 from ..extensions import db
-from ..models import Run, Pipeline
+from ..models import Run, Pipeline, Export
 from ..utils import check_pipeline_access, paginate
 
 results_bp = Blueprint('results', __name__)
 
-EXPORTS_STORE = {}
+
+def _write_export_file(rows, fmt, export_id):
+    """Materialize result rows to disk and return (filename, path, size)."""
+    out_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'exports')
+    os.makedirs(out_dir, exist_ok=True)
+    ext = 'json' if fmt == 'json' else 'csv'
+    filename = f"export_{export_id}.{ext}"
+    path = os.path.join(out_dir, filename)
+    if fmt == 'json':
+        with open(path, 'w', encoding='utf-8') as fh:
+            json.dump(rows, fh, ensure_ascii=False, indent=2)
+    else:
+        with open(path, 'w', encoding='utf-8', newline='') as fh:
+            if rows:
+                writer = csv.DictWriter(fh, fieldnames=list(rows[0].keys()))
+                writer.writeheader()
+                writer.writerows(rows)
+    size = os.path.getsize(path) if os.path.exists(path) else 0
+    return filename, path, size
 
 
 def _get_run_data(run):
@@ -103,63 +121,104 @@ def export_result(result_id):
         return jsonify({'error': 'Result not found'}), 404
 
     data = request.get_json() or {}
-    export_id = f"exp_{result_id}"
-    EXPORTS_STORE[export_id] = {
-        'id': export_id,
-        'result_id': result_id,
-        'format': data.get('format', 'csv'),
-        'status': 'completed',
-        'created_at': datetime.utcnow().isoformat() + 'Z',
-        'run_id': result_id,
-    }
-    return jsonify(EXPORTS_STORE[export_id]), 201
+    fmt = data.get('format', 'csv')
+    rows = _get_run_data(run)
+
+    export = Export(
+        run_id=run.id,
+        pipeline_id=run.pipeline_id,
+        format=fmt,
+        rows=len(rows),
+        status='completed',
+    )
+    db.session.add(export)
+    db.session.flush()  # populate export.id before writing the file
+
+    filename, path, size = _write_export_file(rows, fmt, export.id)
+    export.filename = filename
+    export.path = path
+    export.size = size
+    db.session.commit()
+
+    return jsonify(export.to_dict()), 201
 
 
 @results_bp.route('/exports', methods=['GET'])
 @jwt_required()
 def list_exports():
-    return jsonify({'exports': list(EXPORTS_STORE.values())})
+    q = Export.query
+    if request.args.get('run_id'):
+        q = q.filter_by(run_id=request.args.get('run_id'))
+    if request.args.get('pipeline_id'):
+        q = q.filter_by(pipeline_id=request.args.get('pipeline_id'))
+    exports = q.order_by(Export.created_at.desc()).all()
+    return jsonify({'exports': [e.to_dict() for e in exports]})
 
 
 @results_bp.route('/exports/<export_id>', methods=['GET'])
 @jwt_required()
 def get_export(export_id):
-    export = EXPORTS_STORE.get(export_id)
+    export = Export.query.get(export_id)
     if not export:
         return jsonify({'error': 'Export not found'}), 404
-    return jsonify(export)
+    return jsonify(export.to_dict())
 
 
 @results_bp.route('/exports/<export_id>', methods=['DELETE'])
 @jwt_required()
 def delete_export(export_id):
-    if export_id not in EXPORTS_STORE:
+    export = Export.query.get(export_id)
+    if not export:
         return jsonify({'error': 'Export not found'}), 404
-    del EXPORTS_STORE[export_id]
+    if export.path and os.path.exists(export.path):
+        try:
+            os.remove(export.path)
+        except OSError:
+            pass
+    db.session.delete(export)
+    db.session.commit()
     return jsonify({'message': 'Export deleted'})
 
 
 @results_bp.route('/exports/<export_id>/retry', methods=['POST'])
 @jwt_required()
 def retry_export(export_id):
-    export = EXPORTS_STORE.get(export_id)
+    export = Export.query.get(export_id)
     if not export:
         return jsonify({'error': 'Export not found'}), 404
-    export['status'] = 'completed'
-    return jsonify(export)
+
+    # Regenerate the file from the run's result data if it's missing on disk.
+    if not (export.path and os.path.exists(export.path)):
+        run = Run.query.get(export.run_id)
+        rows = _get_run_data(run) if run else []
+        filename, path, size = _write_export_file(rows, export.format or 'csv', export.id)
+        export.filename = filename
+        export.path = path
+        export.size = size
+        export.rows = len(rows)
+    export.status = 'completed'
+    db.session.commit()
+    return jsonify(export.to_dict())
 
 
 @results_bp.route('/exports/<export_id>/download', methods=['GET'])
 @jwt_required()
 def download_export(export_id):
-    export = EXPORTS_STORE.get(export_id)
+    export = Export.query.get(export_id)
     if not export:
         return jsonify({'error': 'Export not found'}), 404
 
-    run = Run.query.get(export.get('run_id'))
-    data = _get_run_data(run) if run else []
+    fmt = export.format or 'csv'
 
-    fmt = export.get('format', 'csv')
+    # Prefer the file actually persisted on disk by the engine / export request.
+    if export.path and os.path.exists(export.path):
+        mimetype = 'application/json' if fmt == 'json' else 'text/csv'
+        return send_file(export.path, mimetype=mimetype, as_attachment=True,
+                         download_name=export.filename or f'export_{export_id}.{fmt}')
+
+    # Fallback: regenerate from the run's result data.
+    run = Run.query.get(export.run_id)
+    data = _get_run_data(run) if run else []
     if fmt == 'json':
         output = io.BytesIO(json.dumps(data, ensure_ascii=False).encode())
         return send_file(output, mimetype='application/json', as_attachment=True, download_name=f'export_{export_id}.json')

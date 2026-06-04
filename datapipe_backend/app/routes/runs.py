@@ -1,15 +1,49 @@
 from flask import Blueprint, request, jsonify, Response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
+import os
 import time
 import json
 
 from ..extensions import db
-from ..models import Run, RunLog, Node, Pipeline, AuditLog
+from ..models import Run, RunLog, Node, Pipeline, AuditLog, Export
 from ..utils import check_pipeline_access, paginate
 from ..engine import execute_pipeline
 
 runs_bp = Blueprint('runs', __name__)
+
+
+def _persist_exports(pipeline, run):
+    """Turn every successful `file_export` node into a persisted Export record.
+
+    The engine writes the file to disk; this links it to the run in the DB so it
+    is listable/downloadable via the /exports API and survives restarts.
+    """
+    node_types = {n.id: n.type_slug for n in pipeline.nodes}
+    for node_id, result in (run.node_results or {}).items():
+        if node_types.get(node_id) != 'file_export':
+            continue
+        if result.get('status') != 'success':
+            continue
+        extra = result.get('extra') or {}
+        path = extra.get('download_path')
+        size = 0
+        if path and os.path.exists(path):
+            try:
+                size = os.path.getsize(path)
+            except OSError:
+                size = 0
+        db.session.add(Export(
+            run_id=run.id,
+            pipeline_id=pipeline.id,
+            node_id=node_id,
+            filename=extra.get('exported'),
+            format=extra.get('format', 'csv'),
+            path=path,
+            rows=extra.get('rows', 0),
+            size=size,
+            status='completed',
+        ))
 
 
 def _execute(pipeline, run, user_id=None):
@@ -22,6 +56,8 @@ def _execute(pipeline, run, user_id=None):
     for node_id, level, message in logs:
         db.session.add(RunLog(run_id=run.id, node_id=node_id,
                               level=level, message=message))
+
+    _persist_exports(pipeline, run)
 
     pipeline.last_run_at = run.started_at
     pipeline.last_run_status = run.status

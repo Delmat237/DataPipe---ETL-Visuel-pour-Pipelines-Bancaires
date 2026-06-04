@@ -21,9 +21,10 @@ DANGEROUS_SQL = re.compile(r'\b(DROP|DELETE|TRUNCATE|ALTER|INSERT|UPDATE|ATTACH|
 class ExecutionContext:
     """Per-run services: file loading, SQL execution, logging."""
 
-    def __init__(self, upload_folder, logger=None):
+    def __init__(self, upload_folder, logger=None, run_id=None):
         self.upload_folder = upload_folder
         self.logger = logger
+        self.run_id = run_id
         self.logs = []          # [(node_id, level, message)]
         self._duck = None
 
@@ -123,7 +124,12 @@ class ExecutionContext:
         raise nodes.NodeError(f"Type de datasource non supporté pour l'instant: {ds.type}")
 
     def export_path(self, filename):
-        out_dir = os.path.join(self.upload_folder, 'exports')
+        # Scope exports per run so successive runs don't overwrite each other
+        # and every produced file remains retrievable.
+        parts = [self.upload_folder, 'exports']
+        if self.run_id:
+            parts.append(self.run_id)
+        out_dir = os.path.join(*parts)
         os.makedirs(out_dir, exist_ok=True)
         return os.path.join(out_dir, filename)
 
@@ -183,7 +189,8 @@ def execute_pipeline(pipeline, run, ctx=None):
     from flask import current_app
 
     if ctx is None:
-        ctx = ExecutionContext(current_app.config['UPLOAD_FOLDER'])
+        ctx = ExecutionContext(current_app.config['UPLOAD_FOLDER'],
+                               run_id=getattr(run, 'id', None))
 
     node_list = list(pipeline.nodes)
     node_ids = [n.id for n in node_list]

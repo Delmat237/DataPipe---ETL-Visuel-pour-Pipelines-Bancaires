@@ -410,6 +410,7 @@ class Run(db.Model):
     error_message = db.Column(db.Text)
 
     logs = db.relationship('RunLog', backref='run', lazy=True, cascade='all, delete-orphan')
+    exports = db.relationship('Export', backref='run', lazy=True, cascade='all, delete-orphan')
 
     @property
     def node_results(self):
@@ -458,6 +459,39 @@ class RunLog(db.Model):
             'level': self.level,
             'message': self.message,
             'timestamp': self.timestamp.isoformat() + 'Z',
+        }
+
+
+class Export(db.Model):
+    """A materialized export produced by a `file_export` node (or an explicit
+    export request). Persisted in the DB so it survives restarts and is shared
+    across all workers — unlike the previous in-memory store."""
+    __tablename__ = 'exports'
+    id = db.Column(db.String(20), primary_key=True, default=lambda: gen_id('exp'))
+    run_id = db.Column(db.String(20), db.ForeignKey('runs.id'), nullable=False)
+    pipeline_id = db.Column(db.String(20), db.ForeignKey('pipelines.id'))
+    node_id = db.Column(db.String(20))
+    filename = db.Column(db.String(255))
+    format = db.Column(db.String(20), default='csv')
+    path = db.Column(db.String(500))
+    rows = db.Column(db.Integer, default=0)
+    size = db.Column(db.Integer, default=0)
+    status = db.Column(db.String(20), default='completed')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'run_id': self.run_id,
+            'pipeline_id': self.pipeline_id,
+            'node_id': self.node_id,
+            'filename': self.filename,
+            'format': self.format,
+            'rows': self.rows,
+            'size': self.size,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
+            'download_url': f'/api/v1/exports/{self.id}/download',
         }
 
 
