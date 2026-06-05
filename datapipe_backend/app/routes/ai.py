@@ -404,10 +404,12 @@ def agent_transform():
 # endpoints existants côté front APRÈS confirmation de l'utilisateur.
 ACTION_CATALOG = {
     'create_pipeline':  {'params': ['name'],            'warn': None},
+    'select_pipeline':  {'params': ['name'],            'warn': None},
     'add_node':         {'params': ['node_type', 'label'], 'warn': None},
+    'insert_node':      {'params': ['node_type', 'source', 'target'], 'warn': None},
     'connect_nodes':    {'params': ['source', 'target'], 'warn': None},
     'configure_node':   {'params': ['node', 'config'],   'warn': None},
-    'attach_file':      {'params': ['file_id'],          'warn': None},
+    'attach_file':      {'params': ['filename'],         'warn': None},
     'generate_sql':     {'params': ['description'],      'warn': None},
     'run_pipeline':     {'params': [],                   'warn': "L'exécution traitera les données réelles du pipeline."},
     'delete_node':      {'params': ['node'],             'warn': "Cette action supprime un nœud et ses connexions."},
@@ -431,6 +433,13 @@ _NODE_KEYWORDS = {
 def _plan_heuristic(message):
     """Fallback sans LLM : déduit une action proposée à partir de mots-clés."""
     m = (message or '').lower()
+
+    # Référence à un fichier (« mets transactions.csv comme source », « utilise X.json »)
+    fmatch = re.search(r'([\w\-. ]+\.(?:csv|json|xlsx))', m)
+    if fmatch and any(k in m for k in ['source', 'utilise', 'attache', 'mets', 'fichier', 'comme']):
+        fname = fmatch.group(1).strip()
+        return {'type': 'action', 'action': 'attach_file', 'params': {'filename': fname},
+                'message': f"Je vais attacher « {fname} » comme source."}
 
     if any(k in m for k in ['crée', 'créer', 'nouveau pipeline', 'new pipeline']):
         name = 'Nouveau pipeline'
@@ -530,9 +539,19 @@ def plan_from_message(message, columns=None):
         "Soit un PLAN multi-étapes : {\"type\":\"plan\",\"message\":\"...\","
         "\"steps\":[{\"action\":\"<nom>\",\"params\":{...},\"message\":\"...\"}, ...]}.\n"
         f"Actions possibles : {', '.join(ACTION_CATALOG.keys())}.\n"
-        "Types de nœuds pour add_node : csv_reader, json_reader, sql_query, filter, map, "
-        "aggregate, join, sort, dedup, sql_transform, validate, mask_pii, detect_anomalies, "
-        "quality_report, file_export.\n"
+        "Types de nœuds pour add_node/insert_node : csv_reader, json_reader, sql_query, "
+        "http_request, filter, map, aggregate, join, sort, dedup, sql_transform, validate, "
+        "split, merge, mask_pii, detect_anomalies, quality_report, ai_transform, file_export, "
+        "sql_write, chart, table_preview, notification_send, webhook_send, schedule_trigger.\n"
+        "Pour cibler un pipeline existant par son nom (« va dans le pipeline X »), "
+        "commence le plan par select_pipeline {\"name\":\"X\"}.\n"
+        "Pour utiliser un fichier déjà uploadé comme source (« mets transactions.csv "
+        "comme source »), utilise attach_file {\"filename\":\"transactions.csv\"} "
+        "(il configure le nœud source CSV/JSON).\n"
+        "Le pipeline DOIT toujours se terminer par une SORTIE (file_export) : ajoute-la si absente.\n"
+        "Pour insérer un nœud AU MILIEU (« ajoute un filtre entre X et Y »), utilise "
+        "insert_node {\"node_type\":\"filter\",\"source\":\"X\",\"target\":\"Y\"} "
+        "(coupe l'arête X->Y et intercale le nœud).\n"
         f"Colonnes connues : {', '.join(columns) if columns else 'inconnues'}.\n"
         "RÈGLE IMPORTANTE : dès que l'utilisateur exprime une intention de créer, ajouter, "
         "configurer, connecter, supprimer, transformer ou exécuter, tu DOIS répondre par une "
@@ -581,8 +600,50 @@ def plan_from_message(message, columns=None):
             plan['steps'] = steps
             plan['requires_confirmation'] = True
 
+    # Auto-configuration : l'IA crée le nœud, on REMPLIT sa config si vide
+    # (filtre « montant > 1000000 », agrégation « par région »…) depuis la phrase.
+    _to_enrich = (plan.get('steps') if plan.get('type') == 'plan'
+                  else [plan] if plan.get('type') == 'action' else [])
+    for _s in _to_enrich:
+        _enrich_node_config(_s, message)
+
     plan['model'] = _llm_model_name() if raw else 'datapipe-analyst'
     return plan
+
+
+def _enrich_node_config(step, message):
+    """Remplit la config d'un add_node filtre/agrégation/chart à partir du texte,
+    si l'IA ne l'a pas fournie (sinon le nœud reste une coquille vide)."""
+    if not isinstance(step, dict) or step.get('action') not in ('add_node', 'insert_node'):
+        return
+    params = step.setdefault('params', {})
+    if params.get('config'):
+        return
+    hint = f"{params.get('node_type', '')} {params.get('type', '')} {params.get('label', '')}".lower()
+    m = (message or '').lower()
+    cols = [c for c in _BANKING_COLUMNS if c in m]                 # colonnes citées
+    if 'filtr' in hint or 'filter' in hint:
+        fc = _extract_filter_config(message)
+        params['config'] = {'logic': 'AND', 'conditions': [
+            {'field': fc['column'], 'operator': fc['operator'], 'value': fc['value']}]}
+    elif 'agg' in hint or 'agr' in hint or 'group' in hint or 'somme' in hint:
+        ac = _extract_aggregation_config(message)
+        params['config'] = {'group_by': ac['groupBy'], 'aggregations': ac['aggregates']}
+    elif 'chart' in hint or 'graph' in hint:
+        params['config'] = _extract_chart_config(message)
+    elif 'masqu' in hint or 'mask' in hint or 'rgpd' in hint or 'pii' in hint or 'anonym' in hint:
+        pii = [c for c in ('email', 'iban', 'telephone', 'téléphone', 'nom', 'client_id') if c in m]
+        params['config'] = ({'fields': [{'field': c, 'strategy': 'hash'} for c in pii]}
+                            if pii else {'auto': True})
+    elif 'anomal' in hint or 'fraud' in hint or 'suspect' in hint:
+        method = ('negative' if any(k in m for k in ('négatif', 'negatif'))
+                  else 'threshold' if 'seuil' in m else 'zscore')
+        params['config'] = {'field': next((c for c in cols if c != 'id'), 'montant'), 'method': method}
+    elif 'tri' in hint or 'sort' in hint or 'ordonn' in hint:
+        direction = 'desc' if any(k in m for k in ('décroiss', 'decroiss', 'desc', 'plus grand')) else 'asc'
+        params['config'] = {'sort_by': [{'field': (cols[0] if cols else 'montant'), 'direction': direction}]}
+    elif 'dedup' in hint or 'doublon' in hint or 'unique' in hint:
+        params['config'] = {'keys': cols, 'keep': 'first'}
 
 
 @ai_bp.route('/agent/plan', methods=['POST'])
@@ -598,6 +659,71 @@ def agent_plan():
         return jsonify({'error': 'message is required'}), 400
     columns = (data.get('context') or {}).get('columns') or []
     return jsonify(plan_from_message(message, columns))
+
+
+@ai_bp.route('/agent/execute', methods=['POST'])
+@jwt_required()
+def agent_execute():
+    """Chat « mode action » côté web : message -> plan -> EXÉCUTION.
+
+    Réutilise exactement `run_action` (le même moteur d'action que le bot
+    Telegram). Renvoie la réponse texte, le pipeline mis à jour et le détail
+    des actions, pour que le front rafraîchisse le dashboard en direct.
+    """
+    from ..agent_exec import run_action, autowire_pipeline, ensure_output_node
+    from ..models import Pipeline
+
+    user_id = get_jwt_identity()
+    data = request.get_json() or {}
+    message = data.get('message')
+    if not message and isinstance(data.get('messages'), list):
+        message = next((m.get('content') for m in reversed(data['messages'])
+                        if m.get('role') == 'user'), None)
+    if not message:
+        return jsonify({'error': 'message is required'}), 400
+
+    pipeline_id = data.get('pipeline_id')
+    columns = (data.get('context') or {}).get('columns') or []
+    plan = plan_from_message(message, columns)
+
+    # Pas une action -> simple réponse texte (discussion/question).
+    if plan.get('type') == 'reply':
+        return jsonify({'type': 'reply', 'reply': plan.get('message', ''),
+                        'pipeline_id': pipeline_id, 'actions': [],
+                        'model': plan.get('model')})
+
+    steps = plan.get('steps') if plan.get('type') == 'plan' else [plan]
+    actions, run_id, pid = [], None, pipeline_id
+    for step in steps:
+        res = run_action(user_id, step.get('action'), step.get('params') or {}, pid)
+        # Tolérance : « va dans le pipeline X » mais X n'existe pas -> on le crée.
+        if not res.get('ok') and step.get('action') == 'select_pipeline':
+            res = run_action(user_id, 'create_pipeline',
+                             {'name': (step.get('params') or {}).get('name')}, None)
+        if res.get('pipeline_id'):
+            pid = res['pipeline_id']
+        if res.get('run_id'):
+            run_id = res['run_id']
+        actions.append({'action': step.get('action'), 'ok': bool(res.get('ok')),
+                        'message': res.get('message', ''), 'run_id': res.get('run_id')})
+
+    # Auto-câblage de secours + garantie d'un nœud de sortie (toujours un output).
+    wired = autowire_pipeline(pid) if pid else 0
+    out_added = ensure_output_node(pid) if pid else None
+
+    reply_lines = [plan['message']] if plan.get('message') else []
+    reply_lines += [('✅ ' if a['ok'] else '⚠️ ') + a['message'] for a in actions]
+    if wired:
+        reply_lines.append(f'🔗 {wired} connexion(s) ajoutée(s) automatiquement.')
+    if out_added:
+        reply_lines.append('📤 Nœud de sortie (Export) ajouté en fin de pipeline.')
+    pipe = Pipeline.query.get(pid) if pid else None
+    return jsonify({'type': plan.get('type'),
+                    'reply': '\n'.join(l for l in reply_lines if l),
+                    'pipeline_id': pid,
+                    'pipeline': pipe.to_dict() if pipe else None,
+                    'actions': actions, 'run_id': run_id,
+                    'model': plan.get('model')})
 
 
 # ─── Mock Intelligent Constantes & Helpers ─────────────────────────────────────
@@ -650,7 +776,7 @@ _BANKING_AGGS = {
 _GROUP_BY_KEYWORDS = {
     "region": ["région", "region", "zone"],
     "agence": ["agence", "branch", "succursale"],
-    "date":   ["mois", "month", "date", "jour", "année", "an"],
+    "date":   ["mois", "month", "date", "jour", "année", "annee"],
     "type_transaction": ["type", "catégorie", "category"],
 }
 

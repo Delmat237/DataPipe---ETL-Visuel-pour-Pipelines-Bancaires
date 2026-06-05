@@ -1,0 +1,16 @@
+id,date,client_id,montant,type,canal,statut
+A001,2026-05-20,CLI003,120000,virement,mobile,valide
+A002,2026-05-20,CLI007,95000,depot,agence,valide
+A003,2026-05-20,CLI003,24500000,virement,mobile,suspect
+A004,2026-05-21,CLI012,0,virement,web,echec
+A005,2026-05-21,CLI008,78000,retrait,atm,valide
+A006,2026-05-21,CLI003,24500000,virement,mobile,suspect
+A007,2026-05-22,CLI014,-300000,retrait,atm,valide
+A008,2026-05-22,CLI001,52000,depot,agence,valide
+A009,2026-05-22,CLI020,31000000,virement,web,suspect
+A010,2026-05-23,CLI005,67000,virement,mobile,valide
+A011,2026-05-23,CLI009,,depot,agence,echec
+A012,2026-05-23,CLI018,143000,virement,mobile,valide
+A013,2026-05-24,CLI007,28900000,virement,web,suspect
+A014,2026-05-24,CLI002,4500,retrait,atm,valide
+A015,2026-05-24,CLI016,210000,virement,mobile,valide

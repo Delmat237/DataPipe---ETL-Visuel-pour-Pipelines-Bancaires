@@ -51,3 +51,136 @@ def test_ingest_file_creates_file():
         assert set(f.columns) == {'montant', 'type'}
         import os
         assert os.path.exists(f.path)
+
+
+def test_node_type_inference_and_aliases():
+    """add_node déduit le type canonique depuis le label ou un alias."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        from app.models import Node
+        pid = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Hard'})['pipeline_id']
+        # type absent -> inféré depuis le label
+        agent_exec.run_action(uid, 'add_node', {'label': 'Masquage RGPD'}, pid)
+        # alias dans node_type ('anomalies' -> detect_anomalies)
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'anomalies'}, pid)
+        # synonyme 'source' -> csv_reader
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'source'}, pid)
+        types = {n.type_slug for n in Node.query.filter_by(pipeline_id=pid).all()}
+        assert {'mask_pii', 'detect_anomalies', 'csv_reader'} <= types
+        assert 'filter' not in types          # plus de générique indésirable
+
+
+def test_autowire_pipeline():
+    """autowire relie un pipeline non câblé, et reste idempotent / sûr."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        from app.models import Edge
+        pid = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Wire'})['pipeline_id']
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'csv_reader', 'label': 'Src'}, pid)
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'mask_pii', 'label': 'Mask'}, pid)
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'file_export', 'label': 'Out'}, pid)
+        assert Edge.query.filter_by(pipeline_id=pid).count() == 0
+        assert agent_exec.autowire_pipeline(pid) == 2      # 3 nœuds -> 2 liens
+        assert agent_exec.autowire_pipeline(pid) == 0      # déjà câblé -> no-op
+
+
+def test_find_node_tolerant():
+    """_find_node résout par type, ordinal et extrêmes (source/sortie)."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        from app.models import Pipeline
+        pid = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Find'})['pipeline_id']
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'csv_reader', 'label': 'Source CSV'}, pid)
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'mask_pii', 'label': 'Masquage'}, pid)
+        p = Pipeline.query.get(pid)
+        assert agent_exec._find_node(p, 'mask_pii').type_slug == 'mask_pii'   # par type
+        assert agent_exec._find_node(p, 'source').type_slug == 'csv_reader'   # extrême
+        assert agent_exec._find_node(p, '2').type_slug == 'mask_pii'          # ordinal
+        assert agent_exec._find_node(p, 'Masquage').type_slug == 'mask_pii'   # label
+
+
+def test_select_pipeline_by_name():
+    """L'agent cible un pipeline existant par son nom (« va dans le pipeline X »)."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        created = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Conformité Q1'})
+        r = agent_exec.run_action(uid, 'select_pipeline', {'name': 'conformité'})  # sous-chaîne, insensible casse
+        assert r['ok'] and r['pipeline_id'] == created['pipeline_id']
+        assert not agent_exec.run_action(uid, 'select_pipeline', {'name': 'inexistant'})['ok']
+
+
+def test_ensure_output_node():
+    """Toujours une sortie : ajoutée si absente, reliée, idempotente."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        from app.models import Node, Edge
+        pid = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Out'})['pipeline_id']
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'csv_reader', 'label': 'S'}, pid)
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'mask_pii', 'label': 'M'}, pid)
+        out_id = agent_exec.ensure_output_node(pid)
+        assert out_id and Node.query.get(out_id).type_slug == 'file_export'
+        assert Edge.query.filter_by(pipeline_id=pid, target_node_id=out_id).count() == 1   # reliée
+        assert agent_exec.ensure_output_node(pid) is None                                  # idempotent
+
+
+def test_insert_node_in_middle():
+    """insert_node coupe l'arête source->target et intercale le nœud."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        from app.models import Edge, Node
+        pid = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Ins'})['pipeline_id']
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'csv_reader', 'label': 'Src'}, pid)
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'aggregate', 'label': 'Agg'}, pid)
+        agent_exec.run_action(uid, 'connect_nodes', {'source': 'Src', 'target': 'Agg'}, pid)
+        r = agent_exec.run_action(uid, 'insert_node',
+                                  {'node_type': 'filter', 'source': 'Src', 'target': 'Agg'}, pid)
+        assert r['ok'], r
+        ns = {n.id: n.type_slug for n in Node.query.filter_by(pipeline_id=pid).all()}
+        pairs = {(ns[e.source_node_id], ns[e.target_node_id])
+                 for e in Edge.query.filter_by(pipeline_id=pid).all()}
+        assert ('csv_reader', 'filter') in pairs and ('filter', 'aggregate') in pairs
+        assert ('csv_reader', 'aggregate') not in pairs   # l'arête directe est coupée
+
+
+def test_add_node_output_dedup():
+    """Ajouter une 2e sortie réutilise l'existante (pas de doublon « Export »)."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        from app.models import Node
+        pid = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Dup'})['pipeline_id']
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'file_export', 'label': 'Export'}, pid)
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'file_export', 'label': 'Export 2'}, pid)
+        assert Node.query.filter_by(pipeline_id=pid, type_slug='file_export').count() == 1
+
+
+def test_attach_file_by_name():
+    """L'agent attache un fichier uploadé PAR SON NOM au nœud source."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        from app.models import Node
+        agent_exec.ingest_file(uid, 'transactions.csv', b'montant,type\n100,credit\n200,debit\n')
+        pid = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Att'})['pipeline_id']
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'csv_reader', 'label': 'Source CSV'}, pid)
+        r = agent_exec.run_action(uid, 'attach_file', {'filename': 'transactions.csv'}, pid)
+        assert r['ok'], r
+        n = Node.query.filter_by(pipeline_id=pid, type_slug='csv_reader').first()
+        assert n.config.get('file_id')
+        assert not agent_exec.run_action(uid, 'attach_file', {'filename': 'absent.csv'}, pid)['ok']
+
+
+def test_connect_self_loop_rejected():
+    """Une connexion d'un nœud vers lui-même est refusée (anti auto-boucle)."""
+    app = create_app(testing=True)
+    uid, _ = _setup(app)
+    with app.app_context():
+        pid = agent_exec.run_action(uid, 'create_pipeline', {'name': 'Loop'})['pipeline_id']
+        agent_exec.run_action(uid, 'add_node', {'node_type': 'filter', 'label': 'F'}, pid)
+        assert not agent_exec.run_action(uid, 'connect_nodes', {'source': 'F', 'target': 'F'}, pid)['ok']

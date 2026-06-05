@@ -666,3 +666,35 @@ class TestAgentPlan:
         assert d['type'] == 'plan'
         assert len(d['steps']) >= 2
         assert all('action' in s for s in d['steps'])
+
+
+class TestAgentExecute:
+    """Chat mode action côté web : message -> PLANIFIE ET EXÉCUTE (réutilise run_action)."""
+
+    def _exec(self, client, headers, msg, pipeline_id=None):
+        body = {'message': msg}
+        if pipeline_id:
+            body['pipeline_id'] = pipeline_id
+        return post_json(client, '/api/v1/ai/agent/execute', body, headers=headers)
+
+    def test_create_pipeline_is_executed(self, client, auth_headers):
+        resp = self._exec(client, auth_headers, "crée un nouveau pipeline appelé ExecTest")
+        assert resp.status_code == 200, resp.get_data(as_text=True)
+        d = resp.get_json()
+        assert d['type'] in ('action', 'plan')
+        assert d['pipeline_id']                       # pipeline réellement créé
+        assert d['actions'] and d['actions'][0]['ok']
+        assert 'reply' in d
+
+    def test_smalltalk_is_reply_without_action(self, client, auth_headers):
+        d = self._exec(client, auth_headers, "bonjour, comment ça va ?").get_json()
+        assert d['type'] == 'reply'
+        assert d['actions'] == []
+
+    def test_message_required(self, client, auth_headers):
+        resp = post_json(client, '/api/v1/ai/agent/execute', {}, headers=auth_headers)
+        assert resp.status_code == 400
+
+    def test_requires_auth(self, client):
+        resp = post_json(client, '/api/v1/ai/agent/execute', {'message': 'crée un pipeline'})
+        assert resp.status_code in (401, 422)   # JWT manquant

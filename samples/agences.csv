@@ -1,0 +1,11 @@
+agence_id,nom_agence,region,ville,nb_comptes,depots_total_xaf,responsable_email
+AG01,Yaoundé-Centre,Centre,Yaoundé,1240,485000000,dir.ydecentre@bank.cm
+AG02,Yaoundé-Bastos,Centre,Yaoundé,860,312000000,dir.bastos@bank.cm
+AG03,Douala-Akwa,Littoral,Douala,1875,910000000,dir.akwa@bank.cm
+AG04,Douala-Bonabéri,Littoral,Douala,1430,absent,dir.bonaberi@bank.cm
+AG05,Bafoussam,Ouest,Bafoussam,640,198000000,dir.bafoussam@bank.cm
+AG06,Ebolowa,Sud,Ebolowa,310,76000000,dir.ebolowa@bank.cm
+AG07,Garoua,Nord,Garoua,520,143000000,dir.garoua@bank.cm
+AG08,Ngaoundéré,Adamaoua,Ngaoundéré,398,101000000,dir.ngaoundere@bank.cm
+AG09,Buéa,Sud-Ouest,Buéa,275,64000000,
+AG10,Bamenda,Nord-Ouest,Bamenda,412,88000000,dir.bamenda@bank.cm

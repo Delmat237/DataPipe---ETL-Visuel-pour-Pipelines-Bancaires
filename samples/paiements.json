@@ -1,0 +1,14 @@
+[
+  { "paiement_id": "PMT0001", "date": "2026-05-18", "client_id": "CLI001", "email": "jean.mballa@gmail.com", "montant": 35000, "devise": "XAF", "moyen": "mobile_money", "operateur": "MTN", "statut": "succès" },
+  { "paiement_id": "PMT0002", "date": "2026-05-18", "client_id": "CLI004", "email": "marie.atangana@gmail.com", "montant": 12000, "devise": "XAF", "moyen": "carte", "operateur": "Visa", "statut": "succès" },
+  { "paiement_id": "PMT0003", "date": "2026-05-18", "client_id": "CLI003", "email": "paul.fotso@outlook.com", "montant": 7400000, "devise": "XAF", "moyen": "virement", "operateur": "RTGS", "statut": "en_revue" },
+  { "paiement_id": "PMT0004", "date": "2026-05-19", "client_id": "CLI006", "email": "esther.bilong@gmail.com", "montant": 9000, "devise": "XAF", "moyen": "mobile_money", "operateur": "Orange", "statut": "succès" },
+  { "paiement_id": "PMT0005", "date": "2026-05-19", "client_id": "CLI010", "email": "sandrine.eyenga@gmail.com", "montant": 250000, "devise": "XAF", "moyen": "virement", "operateur": "RTGS", "statut": "succès" },
+  { "paiement_id": "PMT0006", "date": "2026-05-19", "client_id": "CLI007", "email": null, "montant": 18900000, "devise": "XAF", "moyen": "virement", "operateur": "RTGS", "statut": "en_revue" },
+  { "paiement_id": "PMT0007", "date": "2026-05-20", "client_id": "CLI008", "email": "laure.tchakounte@gmail.com", "montant": 43000, "devise": "XAF", "moyen": "carte", "operateur": "Mastercard", "statut": "succès" },
+  { "paiement_id": "PMT0008", "date": "2026-05-20", "client_id": "CLI012", "email": "clarisse.abena@yahoo.fr", "montant": 0, "devise": "XAF", "moyen": "mobile_money", "operateur": "MTN", "statut": "échec" },
+  { "paiement_id": "PMT0009", "date": "2026-05-20", "client_id": "CLI014", "email": "nadia.mefire@gmail.com", "montant": 61000, "devise": "XAF", "moyen": "carte", "operateur": "Visa", "statut": "succès" },
+  { "paiement_id": "PMT0010", "date": "2026-05-21", "client_id": "CLI005", "email": "samuel.kameni@gmail.com", "montant": 130000, "devise": "XAF", "moyen": "virement", "operateur": "RTGS", "statut": "succès" },
+  { "paiement_id": "PMT0011", "date": "2026-05-21", "client_id": "CLI013", "email": "brice.owona@gmail.com", "montant": 22000000, "devise": "XAF", "moyen": "virement", "operateur": "RTGS", "statut": "en_revue" },
+  { "paiement_id": "PMT0012", "date": "2026-05-21", "client_id": "CLI002", "email": "awa.ngono@yahoo.fr", "montant": 8700, "devise": "XAF", "moyen": "mobile_money", "operateur": "Orange", "statut": "succès" }
+]

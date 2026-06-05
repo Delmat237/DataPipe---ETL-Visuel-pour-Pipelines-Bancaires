@@ -13,7 +13,7 @@ import urllib.request
 from flask import Blueprint, request, jsonify, current_app
 
 from .ai import plan_from_message
-from ..agent_exec import run_action, ingest_file
+from ..agent_exec import run_action, ingest_file, autowire_pipeline, ensure_output_node
 from ..models import User, Pipeline, OrgMember, Workspace
 
 telegram_bp = Blueprint('telegram', __name__)
@@ -235,12 +235,22 @@ def _execute_plan(chat_id, user_id, pipeline_id, plan):
     last_run_id = None
     for step in steps:
         res = run_action(user_id, step.get('action'), step.get('params'), pipeline_id)
-        if res.get('pipeline_id'):           # create_pipeline -> nouveau pipeline courant
+        # « va dans le pipeline X » mais X n'existe pas -> on le crée.
+        if not res.get('ok') and step.get('action') == 'select_pipeline':
+            res = run_action(user_id, 'create_pipeline',
+                             {'name': (step.get('params') or {}).get('name')}, None)
+        if res.get('pipeline_id'):           # create/select -> nouveau pipeline courant
             pipeline_id = res['pipeline_id']
             _set_current_pipeline(chat_id, pipeline_id)
         if res.get('run_id'):
             last_run_id = res['run_id']
         lines.append(('✅ ' if res.get('ok') else '⚠️ ') + res.get('message', ''))
+    # Auto-câblage de secours (pipeline non relié -> chaîne séquentielle).
+    if pipeline_id and autowire_pipeline(pipeline_id):
+        lines.append('🔗 Connexions ajoutées automatiquement.')
+    # Garantit toujours un nœud de sortie en fin de pipeline.
+    if pipeline_id and ensure_output_node(pipeline_id):
+        lines.append('📤 Nœud de sortie (Export) ajouté.')
     pipe = Pipeline.query.get(pipeline_id) if pipeline_id else None
     if pipe:
         lines.append('')
@@ -295,12 +305,26 @@ def telegram_webhook():
             _send(chat_id, "Import impossible (workspace introuvable).")
             return jsonify({'ok': True})
         node_type = 'json_reader' if ext == 'json' else 'csv_reader'
-        run_action(user_id, 'add_node',
-                   {'node_type': node_type, 'label': fname, 'config': {'file_id': f.id}}, pid)
-        pipe = Pipeline.query.get(pid)
+        pipe = Pipeline.query.get(pid) if pid else None
+        # Réutilise un nœud source EXISTANT sans fichier (évite un doublon),
+        # sinon en ajoute un nouveau.
+        existing = None
+        if pipe:
+            existing = next((n for n in pipe.nodes
+                             if n.type_slug in ('csv_reader', 'json_reader')
+                             and not (n.config or {}).get('file_id')), None)
+        if existing:
+            run_action(user_id, 'configure_node',
+                       {'node': existing.id, 'config': {'file_id': f.id}}, pid)
+            verb = f"attaché à « {existing.label} »"
+        else:
+            run_action(user_id, 'add_node',
+                       {'node_type': node_type, 'label': fname, 'config': {'file_id': f.id}}, pid)
+            verb = "ajouté comme source"
+        pipe = Pipeline.query.get(pid) if pid else None
         summary = ('\n\n' + _pipeline_summary(pipe)) if pipe else ''
         _send(chat_id, f"📥 « {fname} » importé — {f.rows_count} lignes, "
-                       f"{f.columns_count} colonnes. Ajouté comme source.{summary}")
+                       f"{f.columns_count} colonnes. {verb}.{summary}")
         return jsonify({'ok': True})
 
     # 3) Message texte

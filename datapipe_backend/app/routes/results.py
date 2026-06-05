@@ -36,6 +36,7 @@ def list_pipeline_results(pipeline_id):
     results = []
     for run in runs:
         results.append({
+            'id': run.id,            # le front utilise `id` (= run_id) pour download/export
             'run_id': run.id,
             'pipeline_id': pipeline_id,
             'created_at': run.finished_at.isoformat() + 'Z' if run.finished_at else None,

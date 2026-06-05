@@ -156,10 +156,15 @@ def stream_logs(run_id):
     if not run:
         return jsonify({'error': 'Run not found'}), 404
 
+    # On sérialise AVANT le générateur : celui-ci s'exécute hors contexte
+    # applicatif Flask (pas de session SQLAlchemy), donc toute requête DB à
+    # l'intérieur planterait (« no application context »).
+    logs = RunLog.query.filter_by(run_id=run_id).order_by(RunLog.timestamp).all()
+    payloads = [json.dumps(l.to_dict()) for l in logs]
+
     def generate():
-        logs = RunLog.query.filter_by(run_id=run_id).order_by(RunLog.timestamp).all()
-        for log in logs:
-            yield f"data: {json.dumps(log.to_dict())}\n\n"
+        for p in payloads:
+            yield f"data: {p}\n\n"
         yield "data: {\"done\": true}\n\n"
 
     return Response(generate(), mimetype='text/event-stream',
