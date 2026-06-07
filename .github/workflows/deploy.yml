@@ -53,26 +53,56 @@ jobs:
           push: true
           tags: ghcr.io/${{ steps.repo.outputs.name }}-frontend:latest
 
-  # Déploiement VPS — s'active en mettant la variable de repo DEPLOY_ENABLED=true
-  # et les secrets VPS_HOST / VPS_USER / VPS_SSH_KEY (+ VPS_PATH optionnel).
+  # Déploiement VPS — s'active si la variable DEPLOY_ENABLED=true ou si les secrets SSH sont configurés.
+  # Supporte l'ancienne et la nouvelle structure de secrets et de dossiers.
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    if: ${{ vars.DEPLOY_ENABLED == 'true' || secrets.VPS_HOST != '' || secrets.SSH_HOST != '' }}
     steps:
       - name: Deploy over SSH (git pull + docker compose up)
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          host: ${{ secrets.VPS_HOST || secrets.SSH_HOST }}
+          username: ${{ secrets.VPS_USER || secrets.SSH_USER }}
+          key: ${{ secrets.VPS_SSH_KEY || secrets.SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || secrets.SSH_PORT || '22' }}
           script: |
             set -e
-            cd ${{ secrets.VPS_PATH || '~/datapipe' }}
-            git fetch origin
-            git checkout ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
-            # Stack PROD complète (backend + frontend + nginx HTTPS). Le certificat TLS
-            # est déjà présent (obtenu une fois via nginx/init-letsencrypt.sh).
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+            
+            # Détection du dossier de déploiement (nouveau vs ancien)
+            if [ -n "${{ secrets.VPS_PATH }}" ]; then
+              cd "${{ secrets.VPS_PATH }}"
+            elif [ -d "$HOME/datapipe" ]; then
+              cd "$HOME/datapipe"
+            elif [ -d "$HOME/JUNE_HACKATON2026" ]; then
+              cd "$HOME/JUNE_HACKATON2026"
+            else
+              echo "Dossier introuvable, création de ~/datapipe..."
+              mkdir -p "$HOME/datapipe"
+              cd "$HOME/datapipe"
+            fi
+            
+            echo "Dossier de travail : $(pwd)"
+            
+            # Récupération du nom de dépôt en minuscules pour l'image
+            IMAGE_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            
+            # Écriture dynamique du docker-compose.yml sur le VPS
+            # Utilise l'image du package Docker (GHCR) sans avoir besoin du code source
+            printf 'version: "3.8"\n\nservices:\n  backend:\n    image: ghcr.io/%s-backend:latest\n    container_name: datapipe_backend\n    restart: always\n    ports:\n      - "5005:5000"\n    volumes:\n      - datapipe_data:/app/instance\n      - datapipe_uploads:/app/uploads\n    env_file:\n      - .env\n\nvolumes:\n  datapipe_data:\n  datapipe_uploads:\n' "${IMAGE_LOWER}" > docker-compose.yml
+
+            # Connexion au Container Registry de GitHub
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Téléchargement de la nouvelle image et démarrage
+            echo "Téléchargement de la nouvelle image ghcr.io/${IMAGE_LOWER}-backend:latest..."
+            docker compose pull
+            
+            echo "Lancement du conteneur..."
+            docker compose up -d
+            
+            # Nettoyage final des images inutilisées
             docker image prune -f
+            
+            echo "Déploiement terminé avec succès !"
